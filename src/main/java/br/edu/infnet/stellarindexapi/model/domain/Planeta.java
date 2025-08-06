@@ -12,4 +12,9 @@ public class Planeta extends Astro {
     private double gravidade;
     private boolean temSateliteNatural;
     private List<Lua> luas;
+
+    @Override
+    public String obterTipo() {
+        return "Planeta";
+    }
 }

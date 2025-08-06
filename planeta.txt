@@ -1,0 +1,2 @@
+Terra;8.97;true;1;Lua;3804000
+Jupter;24.79;true;2;Europa;3121

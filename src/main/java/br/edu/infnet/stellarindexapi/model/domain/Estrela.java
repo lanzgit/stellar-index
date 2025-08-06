@@ -5,12 +5,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Lua extends Astro{
-    private Integer luaId;
-    private Long distanciaOrbitral;
+public class Estrela extends Astro {
+    private Integer estrelaId;
+    private String constelacao;
 
     @Override
     public String obterTipo() {
-        return "Lua";
+        return "Estrla";
     }
 }
