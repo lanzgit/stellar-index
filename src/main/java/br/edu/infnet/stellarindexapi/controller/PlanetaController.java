@@ -2,7 +2,6 @@ package br.edu.infnet.stellarindexapi.controller;
 
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import br.edu.infnet.stellarindexapi.model.service.PlanetaService;
-import org.springframework.http.HttpStatus;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,5 +53,12 @@ public class PlanetaController {
         this.planetaService.excluir(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/planeta/{id}/nuke")
+    public ResponseEntity<Planeta> destruir(@PathVariable Integer id) {
+        Planeta planetaASerDestruido = this.planetaService.nuke(id);
+
+        return ResponseEntity.status(OK).body(planetaASerDestruido);
     }
 }
