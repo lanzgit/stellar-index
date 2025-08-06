@@ -2,16 +2,19 @@ package br.edu.infnet.stellarindexapi.controller;
 
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import br.edu.infnet.stellarindexapi.model.service.PlanetaService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpResponse;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
+
 @RestController
-@RequestMapping("/api/planetas")
+@RequestMapping("/api")
 @Tag(name = "Planetas", description = "Gerenciado de Planetas")
 public class PlanetaController {
 
@@ -21,31 +24,32 @@ public class PlanetaController {
         this.planetaService = planetaService;
     }
 
-    @GetMapping("/{id}")
-    public Planeta obterPlaneta(@PathVariable Integer id) {
-        return this.planetaService.obter(id);
+    @GetMapping("/planeta/{id}")
+    public ResponseEntity<Planeta> obterPorId(@PathVariable Integer id) {
+        Planeta planeta = this.planetaService.obterPorId(id);
+        return ResponseEntity.status(OK).body(planeta);
     }
 
-    @GetMapping
-    public List<Planeta> obterPlanetas() {
-        return this.planetaService.obterTodos();
+    @GetMapping("/planetas")
+    public ResponseEntity<List<Planeta>> obterPlanetas() {
+        List<Planeta> planetas = this.planetaService.obterTodos();
+        return ResponseEntity.status(OK).body(planetas);
     }
 
-    @PostMapping
+    @PostMapping("/planeta")
     public ResponseEntity<Planeta> criarPlaneta(@RequestBody Planeta planeta) {
         Planeta novoPlaneta = this.planetaService.salvar(planeta);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoPlaneta);
+        return ResponseEntity.status(CREATED).body(novoPlaneta);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/planeta/{id}")
     public ResponseEntity<Planeta> atualizarPlaneta(@PathVariable Integer id, @RequestBody Planeta planeta) {
-        Planeta planetaAtualizado = this.planetaService.atualizar(planeta);
+        Planeta planetaAtualizado = this.planetaService.atualizar(planeta, id);
 
-        return ResponseEntity.ok().body(planetaAtualizado);
+        return ResponseEntity.status(OK).body(planetaAtualizado);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/planeta/{id}")
     public ResponseEntity<Void> excluirPlaneta(@PathVariable Integer id) {
         this.planetaService.excluir(id);
 

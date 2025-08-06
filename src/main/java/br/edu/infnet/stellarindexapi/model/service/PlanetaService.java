@@ -1,10 +1,10 @@
 package br.edu.infnet.stellarindexapi.model.service;
 
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
+import br.edu.infnet.stellarindexapi.model.domain.exceptions.PlanetaInvalidoException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,34 +18,49 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
 
     @Override
     public Planeta salvar(Planeta planeta) {
+        if (planeta.getNome() == null) {
+            throw new PlanetaInvalidoException("O nome do planeta é um informação obrigatória");
+        }
         planeta.setId(nextId.getAndIncrement());
-        mapa.put(planeta.getPlanetaId(), planeta);
+        mapa.put(planeta.getId(), planeta);
 
         return planeta;
     }
 
     @Override
-    public Planeta obter(Integer id) {
+    public Planeta obterPorId(Integer id) {
+        Planeta planeta = mapa.get(id);
+        if (!mapa.containsKey(id)) {
+            throw new PlanetaInvalidoException("O planeta com o ID: " + id + " não existe");
+        }
 
-        return null;
+        return planeta;
     }
 
     @Override
     public void excluir(Integer id) {
-
+        if (!mapa.containsKey(id)) {
+            throw new PlanetaInvalidoException("O planeta com o ID: " + id + " não existe");
+        }
+        mapa.remove(id);
     }
 
     @Override
     public List<Planeta> obterTodos() {
-
-        //outra abordagem
-        List<Planeta> planetas = new ArrayList<Planeta>();
-
-        return List.of((Planeta) mapa.values());
+        return new ArrayList<Planeta>(mapa.values());
     }
 
     @Override
-    public Planeta atualizar(Planeta entity) {
-        return null;
+    public Planeta atualizar(Planeta planeta, Integer id) {
+        if (!mapa.containsKey(id)) {
+            throw new PlanetaInvalidoException("O planeta com o ID: " + id + " não existe");
+        }
+        if (planeta.getNome() == null) {
+            throw new PlanetaInvalidoException("O nome do planeta é um informação obrigatória");
+        }
+        //FIXME: id ficando nulo ao usar o put
+        this.mapa.put(id, planeta);
+
+        return planeta;
     }
 }

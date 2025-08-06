@@ -7,11 +7,11 @@ public interface CrudService<T, ID> {
 
     List<T> obterTodos();
 
-    T obter(ID id);
+    T obterPorId(ID id);
 
     T salvar(T entity);
 
-    T atualizar(T entity);
+    T atualizar(T entity, ID id);
 
     void excluir(ID id);
 }

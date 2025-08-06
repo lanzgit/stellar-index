@@ -8,9 +8,15 @@ import lombok.Setter;
 public abstract class Astro {
     private Integer id;
     private String nome;
-    private String tipoAstro;
-    private int numeroLuas;
     private double temperaturaMedia;
     private String descricao;
     private boolean ehHabitavel;
+
+    @Override
+    public String toString() {
+        return String.format("%d - %s - %.2f - %s - %b",
+                id, nome, temperaturaMedia, descricao, ehHabitavel);
+    }
+
+    public abstract String obterTipo();
 }
