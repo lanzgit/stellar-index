@@ -1,7 +1,6 @@
 package br.edu.infnet.stellarindexapi.model.service;
 
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
-import br.edu.infnet.stellarindexapi.model.domain.exceptions.PlanetaInvalidoException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,19 +14,15 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
 
     private final Map<Integer, Planeta> mapa = new ConcurrentHashMap<Integer, Planeta>();
     private final AtomicInteger nextId = new AtomicInteger(1);
+    private final ValidacaoService validacaoService;
 
-    private void validar(Planeta planeta) {
-        if (planeta == null) {
-            throw new IllegalArgumentException("O planeta não pode ser nulo");
-        }
-        if (planeta.getNome() == null || planeta.getNome().trim().isEmpty()) {
-            throw new PlanetaInvalidoException("O nome do planeta é um informação obrigatória");
-        }
+    public PlanetaService(ValidacaoService validacaoService) {
+        this.validacaoService = validacaoService;
     }
 
     @Override
-    public Planeta salvar(Planeta planeta) {
-        this.validar(planeta);
+    public Planeta criar(Planeta planeta) {
+        this.validacaoService.validarAstro(planeta, planeta.getNome());
         if (planeta.getId() != null && planeta.getId() != 0) {
             throw new IllegalArgumentException("Um novo planeta não pode ter um ID na inclusão");
         }
@@ -63,7 +58,7 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
 
     @Override
     public Planeta atualizar(Planeta planeta, Integer id) {
-        this.validar(planeta);
+        this.validacaoService.validarAstro(planeta, planeta.getNome());
         if (!mapa.containsKey(id)) {
             throw new IllegalArgumentException("Id inexistente");
         }

@@ -14,7 +14,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/api")
-@Tag(name = "Planetas", description = "Gerenciado de Planetas")
+@Tag(name = "Planetas", description = "Gerenciador de Planetas")
 public class PlanetaController {
 
     private final PlanetaService planetaService;
@@ -37,7 +37,7 @@ public class PlanetaController {
 
     @PostMapping("/planeta")
     public ResponseEntity<Planeta> criarPlaneta(@RequestBody Planeta planeta) {
-        Planeta novoPlaneta = this.planetaService.salvar(planeta);
+        Planeta novoPlaneta = this.planetaService.criar(planeta);
         return ResponseEntity.status(CREATED).body(novoPlaneta);
     }
 

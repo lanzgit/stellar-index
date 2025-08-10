@@ -1,17 +1,17 @@
 package br.edu.infnet.stellarindexapi;
 
-import br.edu.infnet.stellarindexapi.model.domain.Lua;
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import br.edu.infnet.stellarindexapi.model.service.PlanetaService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.List;
 
 @Component
+@Order(1)
 public class PlanetaLoader implements ApplicationRunner {
     private final PlanetaService planetaService;
 
@@ -22,31 +22,28 @@ public class PlanetaLoader implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         FileReader arquivo = new FileReader("planeta.txt");
-        BufferedReader leutira = new BufferedReader(arquivo);
+        BufferedReader leitura = new BufferedReader(arquivo);
 
-        String linha = leutira.readLine();
+        String linha = leitura.readLine();
         String[] campos = null;
 
         while (linha != null) {
             campos = linha.split(";");
 
-            Lua lua = new Lua();
-            //TODO: adicionar ID incremental na lua também
-            lua.setId(Integer.valueOf(campos[3]));
-            lua.setNome(campos[4]);
-            lua.setDistanciaOrbitral(Long.valueOf(campos[5]));
+            Planeta planeta = new Planeta();
+            planeta.setNome(campos[0]);
+            planeta.setTemperaturaMedia(Double.valueOf(campos[1]));
+            planeta.setDescricao(campos[2]);
+            planeta.setEhHabitavel(Boolean.valueOf(campos[3]));
+            planeta.setGravidade(Double.valueOf(campos[4]));
+            planeta.setTemSateliteNatural(Boolean.valueOf(campos[5]));
 
-            Planeta terra = new Planeta();
-            terra.setNome(campos[0]);
-            terra.setGravidade(Double.valueOf(campos[1]));
-            terra.setTemSateliteNatural(Boolean.valueOf(campos[2]));
-            terra.setLuas(List.of(lua));
-
-            this.planetaService.salvar(terra);
-            System.out.println(terra);
-            linha = leutira.readLine();
+            this.planetaService.criar(planeta);
+            System.out.println(planeta);
+            linha = leitura.readLine();
         }
-        System.out.println("- " + this.planetaService.obterTodos().size());
-        leutira.close();
+        
+        System.out.println("### " + this.planetaService.obterTodos().size() + " planetas carregados");
+        leitura.close();
     }
 }
