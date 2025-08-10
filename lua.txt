@@ -1,0 +1,5 @@
+Luna;-23.0;Satelite natural da Terra com crateras;false;384400;1
+Europa;-160.0;Lua gelada de Jupiter com oceano subterraneo;false;671034;2
+Titan;-179.0;Maior lua de Saturno com atmosfera densa;false;1221830;3
+Io;-143.0;Lua vulcanica de Jupiter com intensa atividade geologica;false;421700;2
+Ganymede;-181.0;Maior lua do sistema solar com campo magnetico proprio;false;1070412;2

@@ -9,7 +9,7 @@ public interface CrudService<T, ID> {
 
     T obterPorId(ID id);
 
-    T salvar(T entity);
+    T criar(T entity);
 
     T atualizar(T entity, ID id);
 
