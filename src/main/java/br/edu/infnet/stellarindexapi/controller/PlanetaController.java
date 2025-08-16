@@ -25,6 +25,7 @@ public class PlanetaController {
 
     @GetMapping("/planeta/{id}")
     public ResponseEntity<Planeta> obterPorId(@PathVariable Integer id) {
+
         Planeta planeta = this.planetaService.obterPorId(id);
         return ResponseEntity.status(OK).body(planeta);
     }
@@ -32,6 +33,9 @@ public class PlanetaController {
     @GetMapping("/planetas")
     public ResponseEntity<List<Planeta>> obterPlanetas() {
         List<Planeta> planetas = this.planetaService.obterTodos();
+        if (planetas.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.status(OK).body(planetas);
     }
 
@@ -50,6 +54,7 @@ public class PlanetaController {
 
     @DeleteMapping("/planeta/{id}")
     public ResponseEntity<Void> excluirPlaneta(@PathVariable Integer id) {
+
         this.planetaService.excluir(id);
 
         return ResponseEntity.noContent().build();

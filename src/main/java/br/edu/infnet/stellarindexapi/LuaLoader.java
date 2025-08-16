@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.List;
 
 @Component
 @Order(2)
@@ -48,7 +49,9 @@ public class LuaLoader implements ApplicationRunner {
             System.out.println(lua);
             linha = leitura.readLine();
         }
-        System.out.println("### " + this.luaService.obterTodos().size() + " luas carregadas");
+        List<Lua> luas = this.luaService.obterTodos();
+        luas.forEach(System.out::println);
+
         leitura.close();
     }
 }

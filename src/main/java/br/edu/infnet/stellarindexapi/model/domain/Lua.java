@@ -1,9 +1,8 @@
 package br.edu.infnet.stellarindexapi.model.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +15,7 @@ public class Lua extends Astro{
 
     @ManyToOne
     @JoinColumn(name = "planeta_id", nullable = false)
+    @JsonBackReference
     private Planeta planeta;
 
     @Override
