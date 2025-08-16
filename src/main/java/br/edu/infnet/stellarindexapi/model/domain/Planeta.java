@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Getter
 @Setter
 @Entity
@@ -16,7 +18,8 @@ public class Planeta extends Astro {
     private double gravidade;
     private boolean temSateliteNatural;
 
-    @OneToMany(mappedBy = "planeta", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "planeta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Lua> luas;
 
     @Override

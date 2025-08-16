@@ -1,6 +1,8 @@
 package br.edu.infnet.stellarindexapi.model.service;
 
 import br.edu.infnet.stellarindexapi.model.domain.Lua;
+import br.edu.infnet.stellarindexapi.model.domain.exceptions.LuaNaoEncontradaException;
+import br.edu.infnet.stellarindexapi.model.repository.LuaRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.stereotype.Service;
 
@@ -14,27 +16,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class LuaService implements CrudService<Lua, Integer> {
 
-    private final Map<Integer, Lua> mapa = new ConcurrentHashMap<Integer, Lua>();
-    private final AtomicInteger nextId = new AtomicInteger(1);
     private final ValidacaoService validacaoService;
+    private final LuaRepository luaRepository;
 
-    public LuaService(ValidacaoService validacaoService) {
+    public LuaService(ValidacaoService validacaoService, LuaRepository luaRepository) {
         this.validacaoService = validacaoService;
+        this.luaRepository = luaRepository;
     }
 
     @Override
     public List<Lua> obterTodos() {
-        return new ArrayList<Lua>(this.mapa.values());
+        return this.luaRepository.findAll();
     }
 
     @Override
     public Lua obterPorId(Integer id) {
-        Lua lua = mapa.get(id);
-        if (Objects.isNull(lua)) {
-            throw new IllegalArgumentException("Impossível obter a lua pelo ID: " + id);
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("o id não pode ser nulo ou zero");
         }
 
-        return lua;
+        return this.luaRepository.findById(id)
+                .orElseThrow(() -> new LuaNaoEncontradaException("Lua não encontrada"));
     }
 
     @Override
@@ -44,31 +46,27 @@ public class LuaService implements CrudService<Lua, Integer> {
             throw  new IllegalArgumentException("uma nova lua não pode ter um ID na inclusão");
         }
 
-        lua.setId(nextId.getAndIncrement());
-        mapa.put(lua.getId(), lua);
-
-        return lua;
+        return this.luaRepository.save(lua);
     }
 
     @Override
     public Lua atualizar(Lua lua, Integer id) {
         this.validacaoService.validarAstro(lua, lua.getNome());
-        if (!mapa.containsKey(id)) {
-            throw new IllegalArgumentException("Id inexistente");
-        }
-        this.obterPorId(id);
-        lua.setId(id);
-        this.mapa.put(lua.getId(), lua);
 
-        return lua;
+        Lua luaExistente = this.obterPorId(id);
+        luaExistente.setNome(lua.getNome());
+        luaExistente.setDistanciaOrbitral(lua.getDistanciaOrbitral());
+        luaExistente.setDescricao(lua.getDescricao());
+        luaExistente.setEhHabitavel(lua.isEhHabitavel());
+        luaExistente.setTemperaturaMedia(lua.getTemperaturaMedia());
+        luaExistente.setPlaneta(lua.getPlaneta());
+
+        return this.luaRepository.save(luaExistente);
     }
 
     @Override
     public void excluir(Integer id) {
-        if (!mapa.containsKey(id) && id != null) {
-            throw new IllegalArgumentException("id inválido");
-        }
-
-        this.mapa.remove(id);
+        Lua lua = this.obterPorId(id);
+        this.luaRepository.delete(lua);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.List;
 
 @Component
 @Order(1)
@@ -39,11 +40,12 @@ public class PlanetaLoader implements ApplicationRunner {
             planeta.setTemSateliteNatural(Boolean.valueOf(campos[5]));
 
             this.planetaService.criar(planeta);
-            System.out.println(planeta);
             linha = leitura.readLine();
         }
-        
-        System.out.println("### " + this.planetaService.obterTodos().size() + " planetas carregados");
+
+        List<Planeta> planetas = this.planetaService.obterTodos();
+        planetas.forEach(System.out::println);
+
         leitura.close();
     }
 }
