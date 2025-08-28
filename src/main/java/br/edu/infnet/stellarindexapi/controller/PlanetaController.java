@@ -3,13 +3,13 @@ package br.edu.infnet.stellarindexapi.controller;
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import br.edu.infnet.stellarindexapi.model.service.PlanetaService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 
 @RestController
@@ -40,8 +40,9 @@ public class PlanetaController {
     }
 
     @PostMapping("/planeta")
-    public ResponseEntity<Planeta> criarPlaneta(@RequestBody Planeta planeta) {
+    public ResponseEntity<Planeta> criarPlaneta(@Valid @RequestBody Planeta planeta) {
         Planeta novoPlaneta = this.planetaService.criar(planeta);
+
         return ResponseEntity.status(CREATED).body(novoPlaneta);
     }
 

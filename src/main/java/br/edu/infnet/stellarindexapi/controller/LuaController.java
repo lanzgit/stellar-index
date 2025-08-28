@@ -50,4 +50,26 @@ public class LuaController {
        this.luaService.excluir(id);
        return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("luas/{planetaId}")
+    public ResponseEntity<List<Lua>> obterLuasPorPlanetaId(@PathVariable Integer planetaId) {
+        List<Lua> luas = this.luaService.obterPorPlanetaId(planetaId);
+
+        if (luas.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        
+        return ResponseEntity.status(OK).body(luas);
+    }
+
+    @GetMapping("/luas/distancia/{distancia}")
+    public ResponseEntity<List<Lua>> obterLuasComDistanciaOrbitralMaiorQue(@PathVariable Double distancia) {
+        List<Lua> luas = this.luaService.obterLuasComDistanciaOrbitralMaiorQue(distancia);
+
+        if (luas.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(OK).body(luas);
+    }
 }

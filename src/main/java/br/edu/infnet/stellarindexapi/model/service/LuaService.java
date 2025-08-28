@@ -3,15 +3,10 @@ package br.edu.infnet.stellarindexapi.model.service;
 import br.edu.infnet.stellarindexapi.model.domain.Lua;
 import br.edu.infnet.stellarindexapi.model.domain.exceptions.LuaNaoEncontradaException;
 import br.edu.infnet.stellarindexapi.model.repository.LuaRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class LuaService implements CrudService<Lua, Integer> {
@@ -59,7 +54,6 @@ public class LuaService implements CrudService<Lua, Integer> {
         luaExistente.setDescricao(lua.getDescricao());
         luaExistente.setEhHabitavel(lua.isEhHabitavel());
         luaExistente.setTemperaturaMedia(lua.getTemperaturaMedia());
-        luaExistente.setPlaneta(lua.getPlaneta());
 
         return this.luaRepository.save(luaExistente);
     }
@@ -68,5 +62,22 @@ public class LuaService implements CrudService<Lua, Integer> {
     public void excluir(Integer id) {
         Lua lua = this.obterPorId(id);
         this.luaRepository.delete(lua);
+    }
+
+    public List<Lua> obterPorPlanetaId(Integer planetaId) {
+        if (planetaId == null || planetaId <= 0) {
+            throw new IllegalArgumentException("O id do planeta não pode ser nulo ou menor que zero");
+        }
+
+        return this.luaRepository.findByPlanetaId(planetaId)
+            .orElse(new ArrayList<>());
+    }
+
+    public List<Lua> obterLuasComDistanciaOrbitralMaiorQue(Double distancia) {
+        if (distancia == null || distancia < 0) {
+            throw new IllegalArgumentException("A distância não pode ser nula ou negativa");
+        }
+
+        return this.luaRepository.findByDistanciaOrbitralGreaterThan(distancia);
     }
 }

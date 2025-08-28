@@ -39,7 +39,12 @@ public class PlanetaLoader implements ApplicationRunner {
             planeta.setGravidade(Double.valueOf(campos[4]));
             planeta.setTemSateliteNatural(Boolean.valueOf(campos[5]));
 
-            this.planetaService.criar(planeta);
+            try {
+                this.planetaService.criar(planeta);
+            } catch (Exception e) {
+                System.err.println("Erro na criação: " + e.getMessage());
+            }
+
             linha = leitura.readLine();
         }
 

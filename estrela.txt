@@ -1,0 +1,9 @@
+Regulus;11700.0;Estrela mais brilhante da constelacao de Leao;false;LEO;SEQUENCIA_PRINCIPAL
+Denebola;8500.0;Segunda estrela mais brilhante de Leao;false;LEO;SUBGIGANTE
+Algieba;4500.0;Estrela gigante laranja em Leao;false;LEO;GIGANTE_REGULAR
+Aldebaran;3900.0;Estrela gigante vermelha olho do Touro;false;TAURUS;GIGANTE_REGULAR
+Elnath;13600.0;Segunda estrela mais brilhante de Touro;false;TAURUS;GIGANTE
+Alcyone;12000.0;Estrela das Pleiades mais brilhante;false;TAURUS;SUBGIGANTE
+Castor;10300.0;Estrela multipla mais brilhante de Gemeos;false;GEMINI;SEQUENCIA_PRINCIPAL
+Pollux;4600.0;Gigante laranja de Gemeos;false;GEMINI;GIGANTE_REGULAR
+Alhena;25000.0;Estrela azul-branca de Gemeos;false;GEMINI;SUBGIGANTE

@@ -1,3 +1,3 @@
 Terra;15.0;Planeta rochoso terceiro do sistema solar;true;9.81;true
-Jupiter;-110.0;Maior planeta do sistema solar com grande mancha vermelha;false;24.79;true
+Jupiter;-110.0;Maior planeta do sistema solar;false;24.79;true
 Saturno;-140.0;Planeta dos aneis com baixa densidade;false;10.44;true
