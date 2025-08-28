@@ -3,6 +3,7 @@ package br.edu.infnet.stellarindexapi.model.service;
 import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import br.edu.infnet.stellarindexapi.model.domain.exceptions.PlanetaNaoEncotradoException;
 import br.edu.infnet.stellarindexapi.model.repository.PlanetaRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
     }
 
     @Override
+    @Transactional
     public Planeta criar(Planeta planeta) {
         this.validacaoService.validarAstro(planeta, planeta.getNome());
         if (planeta.getId() != null && planeta.getId() != 0) {
@@ -33,20 +35,22 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
     }
 
     @Override
+    @Transactional
     public Planeta obterPorId(Integer id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("o id não pode ser nulo ou zero");
         }
         Planeta planeta = this.planetaRepository
-                .findById(id)
-                .orElseThrow(() -> new PlanetaNaoEncotradoException(
-                        "O planeta não foi encontrado"
-                ));
+            .findById(id)
+            .orElseThrow(() -> new PlanetaNaoEncotradoException(
+                "O planeta não foi encontrado"
+            ));
 
         return planeta;
     }
 
     @Override
+    @Transactional
     public void excluir(Integer id) {
         Planeta planeta = this.obterPorId(id);
         this.planetaRepository.delete(planeta);
@@ -59,7 +63,11 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
     }
 
     @Override
+    @Transactional
     public Planeta atualizar(Planeta planeta, Integer id) {
+        if (id == null || id == 0) {
+            throw new IllegalArgumentException("O ID não pode ser zero ou nulo");
+        }
         this.validacaoService.validarAstro(planeta, planeta.getNome());
 
         Planeta planetaExistente = this.obterPorId(id);
@@ -73,7 +81,11 @@ public class PlanetaService implements CrudService<Planeta, Integer>{
         return this.planetaRepository.save(planetaExistente);
     }
 
+    @Transactional
     public Planeta nuke(Integer id) {
+        if (id == null || id == 0) {
+            throw new IllegalArgumentException("O ID não pode ser zero ou nulo");
+        }
         Planeta planeta = this.obterPorId(id);
         if (!planeta.isEhHabitavel()) {
             System.out.println("O planeta " + planeta.getNome() + "já não é mais habitável");

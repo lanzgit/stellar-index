@@ -1,43 +1,77 @@
 package br.edu.infnet.stellarindexapi.model.service;
 
 import br.edu.infnet.stellarindexapi.model.domain.Estrela;
-import br.edu.infnet.stellarindexapi.model.domain.Lua;
-import br.edu.infnet.stellarindexapi.model.domain.Planeta;
+import br.edu.infnet.stellarindexapi.model.domain.exceptions.EstrelaNaoEncontradaException;
+import br.edu.infnet.stellarindexapi.model.repository.EstrelaRepository;
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class EstrelaService implements CrudService<Estrela, Integer> {
 
-    private final Map<Integer, Estrela> mapa = new ConcurrentHashMap<Integer, Estrela>();
-    private final AtomicInteger nextId = new AtomicInteger(1);
+    private final EstrelaRepository estrelaRepository;
+    private final ValidacaoService validacaoService;
+
+    public EstrelaService(EstrelaRepository estrelaRepository, ValidacaoService validacaoService) {
+        this.estrelaRepository = estrelaRepository;
+        this.validacaoService = validacaoService;
+    }
 
     @Override
     public List<Estrela> obterTodos() {
-        return List.of();
+        return this.estrelaRepository.findAll();
     }
 
     @Override
-    public Estrela obterPorId(Integer integer) {
-        return null;
+    @Transactional
+    public Estrela obterPorId(Integer id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("ID inválido");
+        }
+        Estrela estrela = this.estrelaRepository
+            .findById(id)
+            .orElseThrow(() -> new EstrelaNaoEncontradaException("Estrela não encontrada"));
+
+        return estrela;
     }
 
     @Override
-    public Estrela criar(Estrela entity) {
-        return null;
+    @Transactional
+    public Estrela criar(Estrela estrela) {
+        this.validacaoService.validarAstro(estrela, estrela.getNome());
+        if (estrela.getId() != null && estrela.getId() != 0) {
+            throw new IllegalArgumentException("Uma nova estrela não pode ter um ID na inclusão");
+        }
+        
+        return this.estrelaRepository.save(estrela);
     }
 
     @Override
-    public Estrela atualizar(Estrela entity, Integer integer) {
-        return null;
+    @Transactional
+    public Estrela atualizar(Estrela estrela, Integer id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("ID inválido");
+        }
+        this.validacaoService.validarAstro(estrela, estrela.getNome());
+
+        Estrela estrelaExistente = this.obterPorId(id);
+        estrelaExistente.setNome(estrela.getNome());
+        estrelaExistente.setDescricao(estrela.getDescricao());
+        estrelaExistente.setConstelacao(estrela.getConstelacao());
+        estrelaExistente.setEhHabitavel(estrela.isEhHabitavel());
+        estrelaExistente.setLuminosidade(estrela.getLuminosidade());
+        estrelaExistente.setTemperaturaMedia(estrela.getTemperaturaMedia());
+
+        return this.estrelaRepository.save(estrelaExistente);
     }
 
     @Override
-    public void excluir(Integer integer) {
-
+    @Transactional
+    public void excluir(Integer id) {
+        Estrela estrela = this.obterPorId(id);
+        this.estrelaRepository.delete(estrela);
     }
 }

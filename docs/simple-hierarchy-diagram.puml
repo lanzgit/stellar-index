@@ -1,0 +1,56 @@
+@startuml Modelo Hierárquico Simples - Stellar Index API
+
+!theme plain
+skinparam class {
+  BackgroundColor wheat
+  BorderColor brown
+  ArrowColor brown
+}
+
+title Modelo Hierárquico
+
+abstract class Astro {
+  + id: Integer
+  + nome: String
+  + temperaturaMedia: double
+  + descricao: String
+  + ehHabitavel: boolean
+  --
+  + {abstract} obterTipo(): String
+}
+
+class Planeta {
+  + gravidade: double
+  + temSateliteNatural: boolean
+  --
+  + obterTipo(): String = "Planeta"
+}
+
+class Lua {
+  + distanciaOrbitral: Long
+  --
+  + obterTipo(): String = "Lua"
+}
+
+class Estrela {
+  + luminosidade: LuminosidadeEnum
+  + constelacao: String
+  --
+  + obterTipo(): String = "Estrela"
+}
+
+' Posicionamento - Lua à direita do Planeta
+Planeta -right-> Lua
+
+' Relacionamentos de herança
+Astro <|-- Planeta
+Astro <|-- Lua  
+Astro <|-- Estrela
+
+' Relacionamento de associação
+Planeta "1" ||--o{ "0..*" Lua : possui
+
+' Anotações simples
+note top of Astro : "Classe Base Abstrata\nPropriedades comuns"
+
+@enduml
