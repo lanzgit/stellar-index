@@ -1,0 +1,10 @@
+433 Eros;-73.0;Asteroide tipo S próximo à Terra descoberto em 1898;false;433;true;false
+99942 Apophis;-40.0;Asteroide potencialmente perigoso que passará próximo à Terra em 2029;false;99942;true;true
+1620 Geographos;-50.0;Asteroide tipo S alongado com formato peculiar;false;1620;true;false
+4179 Toutatis;-47.0;Asteroide tipo S com rotação caótica e formato irregular;false;4179;true;false
+25143 Itokawa;-85.0;Asteroide tipo S visitado pela sonda japonesa Hayabusa;false;25143;true;false
+101955 Bennu;-73.0;Asteroide tipo B visitado pela missão OSIRIS-REx da NASA;false;101955;true;false
+162173 Ryugu;-43.0;Asteroide tipo C visitado pela sonda japonesa Hayabusa2;false;162173;true;false
+2063 Bacchus;-55.0;Asteroide Apollo com formato alongado tipo haltere;false;2063;true;false
+1685 Toro;-60.0;Asteroide tipo S com órbita em ressonância com a Terra;false;1685;true;false
+3753 Cruithne;-45.0;Asteroide em órbita quasi-satélite da Terra;false;3753;true;false
