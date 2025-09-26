@@ -14,7 +14,6 @@ import lombok.Setter;
 @Entity
 public class Estrela extends Astro {
 
-    //TODO: transformar em objeto no futuro
     @NotNull(message = "A constelação é obrigatória")
     @Enumerated(EnumType.STRING)
     private ConstelacaoEnum constelacao;
