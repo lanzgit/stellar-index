@@ -18,7 +18,7 @@ public abstract class Astro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Size(min = 2, max = 15)
+    @Size(min = 2, max = 19)
     private String nome;
 
     private double temperaturaMedia;

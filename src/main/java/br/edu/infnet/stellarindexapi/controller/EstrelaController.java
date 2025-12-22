@@ -1,6 +1,7 @@
 package br.edu.infnet.stellarindexapi.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.infnet.stellarindexapi.model.domain.Estrela;
+import br.edu.infnet.stellarindexapi.model.dto.EstrelaDTO;
+import br.edu.infnet.stellarindexapi.model.dto.EstrelaMapper;
 import br.edu.infnet.stellarindexapi.model.service.EstrelaService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,24 +34,28 @@ public class EstrelaController {
     }
 
     @GetMapping("/estrelas")
-    public ResponseEntity<List<Estrela>> obterEstrelas() {
+    public ResponseEntity<List<EstrelaDTO>> obterEstrelas() {
         List<Estrela> estrelas = this.estrelaService.obterTodos();
         if (estrelas.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.status(OK).body(estrelas);
+        List<EstrelaDTO> estrelasDTO = estrelas.stream()
+                .map(EstrelaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.status(OK).body(estrelasDTO);
     }
 
     @GetMapping("/estrela/{id}")
-    public ResponseEntity<Estrela> obterPorId(@PathVariable Integer id) {
+    public ResponseEntity<EstrelaDTO> obterPorId(@PathVariable Integer id) {
         Estrela estrela = this.estrelaService.obterPorId(id);
-        return ResponseEntity.status(OK).body(estrela);
+        return ResponseEntity.status(OK).body(EstrelaMapper.toDTO(estrela));
     }
 
     @PostMapping("/estrela")
-    public ResponseEntity<Estrela> criarEstrela(@Valid @RequestBody Estrela estrela) {
+    public ResponseEntity<EstrelaDTO> criarEstrela(@Valid @RequestBody EstrelaDTO estrelaDTO) {
+        Estrela estrela = EstrelaMapper.toEntity(estrelaDTO);
         Estrela novaEstrela = this.estrelaService.criar(estrela);
-        return ResponseEntity.status(CREATED).body(novaEstrela);
+        return ResponseEntity.status(CREATED).body(EstrelaMapper.toDTO(novaEstrela));
     }
 
     @DeleteMapping("/estrela/{id}")
@@ -58,8 +65,9 @@ public class EstrelaController {
     }
 
     @PutMapping("/estrela/{id}")
-    public ResponseEntity<Estrela> atualizarEstrela(@PathVariable Integer id, @RequestBody Estrela estrela) {
+    public ResponseEntity<EstrelaDTO> atualizarEstrela(@PathVariable Integer id, @Valid @RequestBody EstrelaDTO estrelaDTO) {
+        Estrela estrela = EstrelaMapper.toEntity(estrelaDTO);
         Estrela estrelaAtualizada = this.estrelaService.atualizar(estrela, id);
-        return ResponseEntity.status(OK).body(estrelaAtualizada);
+        return ResponseEntity.status(OK).body(EstrelaMapper.toDTO(estrelaAtualizada));
     }
 }
