@@ -1,7 +1,8 @@
 package br.edu.infnet.stellarindexapi.model.service;
 
-import br.edu.infnet.stellarindexapi.model.clients.CorpoCelesteClient;
+import br.edu.infnet.stellarindexapi.model.clients.NasaSbdbClient;
 import br.edu.infnet.stellarindexapi.model.domain.Asteroide;
+import br.edu.infnet.stellarindexapi.model.domain.CorpoCeleste;
 import br.edu.infnet.stellarindexapi.model.repository.AsteroideRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AsteroideService implements CrudService<Asteroide, Integer> {
 
-    private final CorpoCelesteClient corpoCelesteClient;
+    private final NasaSbdbClient nasaSbdbClient;
     private final AsteroideRepository asteroideRepository;
     private final ValidacaoService validacaoService;
 
@@ -38,9 +39,8 @@ public class AsteroideService implements CrudService<Asteroide, Integer> {
             throw new IllegalArgumentException("Um novo asteroide não pode ter um ID na inclusão");
         }
 
-        CorpoCelesteClient.CorpoCelesteResponse response = 
-            corpoCelesteClient.obterCorpoCelestePorDesignacao(asteroide.getDesignacao());
-        asteroide.copyFromCorpoCelesteResponse(response);
+        CorpoCeleste corpoCeleste = nasaSbdbClient.buscarCorpoCeleste(asteroide.getDesignacao());
+        asteroide.copyFromCorpoCelesteResponse(corpoCeleste);
 
         return this.asteroideRepository.save(asteroide);
     }
@@ -61,11 +61,10 @@ public class AsteroideService implements CrudService<Asteroide, Integer> {
         asteroideExistente.setDescricao(asteroide.getDescricao());
         asteroideExistente.setEhHabitavel(asteroide.isEhHabitavel());
 
-        if (asteroide.getDesignacao() != asteroideExistente.getDesignacao()) {
+        if (!asteroide.getDesignacao().equals(asteroideExistente.getDesignacao())) {
             asteroideExistente.setDesignacao(asteroide.getDesignacao());
-            CorpoCelesteClient.CorpoCelesteResponse response =
-                corpoCelesteClient.obterCorpoCelestePorDesignacao(asteroide.getDesignacao());
-            asteroideExistente.copyFromCorpoCelesteResponse(response);
+            CorpoCeleste corpoCeleste = nasaSbdbClient.buscarCorpoCeleste(asteroide.getDesignacao());
+            asteroideExistente.copyFromCorpoCelesteResponse(corpoCeleste);
         }
 
         return this.asteroideRepository.save(asteroideExistente);
@@ -86,3 +85,4 @@ public class AsteroideService implements CrudService<Asteroide, Integer> {
         this.asteroideRepository.delete(asteroideExistente);
     }
 }
+

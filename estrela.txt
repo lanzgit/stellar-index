@@ -1,9 +1,50 @@
-Regulus;11700.0;Estrela mais brilhante da constelacao de Leao;false;LEO;SEQUENCIA_PRINCIPAL
-Denebola;8500.0;Segunda estrela mais brilhante de Leao;false;LEO;SUBGIGANTE
-Algieba;4500.0;Estrela gigante laranja em Leao;false;LEO;GIGANTE_REGULAR
-Aldebaran;3900.0;Estrela gigante vermelha olho do Touro;false;TAURUS;GIGANTE_REGULAR
+Hamal;4480.0;Estrela gigante laranja, alpha Arietis;false;ARIES;GIGANTE_REGULAR
+Sheratan;9350.0;Estrela branca, beta Arietis;false;ARIES;SEQUENCIA_PRINCIPAL
+Mesarthim;10500.0;Sistema binário, gamma Arietis;false;ARIES;SEQUENCIA_PRINCIPAL
+Botein;4890.0;Estrela gigante, delta Arietis;false;ARIES;GIGANTE_REGULAR
+41 Arietis;7200.0;Estrela azul-branca;false;ARIES;SEQUENCIA_PRINCIPAL
+Aldebaran;3910.0;Gigante vermelha, olho do Touro;false;TAURUS;GIGANTE_REGULAR
 Elnath;13600.0;Segunda estrela mais brilhante de Touro;false;TAURUS;GIGANTE
-Alcyone;12000.0;Estrela das Pleiades mais brilhante;false;TAURUS;SUBGIGANTE
-Castor;10300.0;Estrela multipla mais brilhante de Gemeos;false;GEMINI;SEQUENCIA_PRINCIPAL
-Pollux;4600.0;Gigante laranja de Gemeos;false;GEMINI;GIGANTE_REGULAR
-Alhena;25000.0;Estrela azul-branca de Gemeos;false;GEMINI;SUBGIGANTE
+Alcyone;12000.0;Estrela mais brilhante das Plêiades;false;TAURUS;SUBGIGANTE
+Atlas;11500.0;Estrela das Plêiades;false;TAURUS;SEQUENCIA_PRINCIPAL
+Electra;11000.0;Estrela das Plêiades;false;TAURUS;SEQUENCIA_PRINCIPAL
+Maia;11300.0;Estrela das Plêiades;false;TAURUS;SUBGIGANTE
+Merope;11500.0;Estrela das Plêiades;false;TAURUS;SUBGIGANTE
+Taygeta;11200.0;Estrela das Plêiades;false;TAURUS;SUBGIGANTE
+Pleione;11800.0;Estrela das Plêiades;false;TAURUS;SUBGIGANTE
+Celaeno;11400.0;Estrela das Plêiades;false;TAURUS;SUBGIGANTE
+Asterope;11600.0;Estrela dupla das Plêiades;false;TAURUS;SUBGIGANTE
+Pollux;4666.0;Gigante laranja, beta Geminorum;false;GEMINI;GIGANTE_REGULAR
+Castor;10286.0;Sistema estelar múltiplo;false;GEMINI;SEQUENCIA_PRINCIPAL
+Alhena;9260.0;Estrela branca, gamma Geminorum;false;GEMINI;SUBGIGANTE
+Wasat;6900.0;Estrela amarelo-branca;false;GEMINI;SEQUENCIA_PRINCIPAL
+Mebsuta;3100.0;Supergigante amarela;false;GEMINI;SUPER_GIGANTE
+Tejat;3600.0;Gigante vermelha;false;GEMINI;GIGANTE_REGULAR
+Propus;3800.0;Sistema triplo com gigante vermelha;false;GEMINI;GIGANTE_REGULAR
+Mekbuda;3200.0;Supergigante amarela variável;false;GEMINI;SUPER_GIGANTE
+Alzirr;8500.0;Estrela azul-branca;false;GEMINI;SEQUENCIA_PRINCIPAL
+Acubens;11900.0;Sistema estelar múltiplo;false;CANCER;SEQUENCIA_PRINCIPAL
+Asellus Australis;4990.0;Gigante laranja;false;CANCER;GIGANTE_REGULAR
+Asellus Borealis;6650.0;Estrela amarelo-branca;false;CANCER;SEQUENCIA_PRINCIPAL
+Tegmine;10200.0;Sistema estelar múltiplo;false;CANCER;SEQUENCIA_PRINCIPAL
+55 Cancri;5196.0;Estrela similar ao Sol com planetas;false;CANCER;SEQUENCIA_PRINCIPAL
+Al Tarf;3990.0;Gigante vermelha;false;CANCER;GIGANTE_REGULAR
+Iota Cancri;10100.0;Estrela azul-branca;false;CANCER;SEQUENCIA_PRINCIPAL
+Regulus;11668.0;Estrela mais brilhante de Leão;false;LEO;SEQUENCIA_PRINCIPAL
+Denebola;8500.0;Segunda estrela mais brilhante;false;LEO;SUBGIGANTE
+Algieba;4470.0;Sistema binário de gigantes;false;LEO;GIGANTE_REGULAR
+Zosma;8296.0;Estrela azul-branca;false;LEO;SEQUENCIA_PRINCIPAL
+Chertan;11600.0;Estrela branca;false;LEO;SEQUENCIA_PRINCIPAL
+Spica;22400.0;Estrela mais brilhante de Virgem;false;VIRGO;SUBGIGANTE
+Porrima;7000.0;Sistema binário;false;VIRGO;SEQUENCIA_PRINCIPAL
+Vindemiatrix;9440.0;Gigante amarela;false;VIRGO;GIGANTE
+Heze;6890.0;Estrela branca;false;VIRGO;SEQUENCIA_PRINCIPAL
+Minelauva;10900.0;Estrela azul-branca;false;VIRGO;SEQUENCIA_PRINCIPAL
+Syrma;7100.0;Estrela amarelo-branca;false;VIRGO;SEQUENCIA_PRINCIPAL
+Zubenelgenubi;5900.0;Sistema estelar múltiplo;false;LIBRA;SEQUENCIA_PRINCIPAL
+Brachium;3200.0;Gigante vermelha;false;LIBRA;GIGANTE_REGULAR
+Antares;3400.0;Supergigante vermelha, coração do Escorpião;false;SCORPIUS;SUPER_GIGANTE
+Shaula;25000.0;Estrela azul-branca;false;SCORPIUS;SUBGIGANTE
+Acrab;27000.0;Sistema estelar múltiplo;false;SCORPIUS;SUBGIGANTE
+Dschubba;27400.0;Gigante azul-branca;false;SCORPIUS;SUBGIGANTE
+Sargas;3500.0;Gigante vermelha;false;SCORPIUS;GIGANTE_REGULAR

@@ -1,6 +1,6 @@
 package br.edu.infnet.stellarindexapi.model.domain;
 
-import br.edu.infnet.stellarindexapi.model.clients.CorpoCelesteClient;
+import br.edu.infnet.stellarindexapi.model.clients.NasaSbdbClient;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -21,13 +21,13 @@ public class Asteroide extends Astro {
     private boolean neo;
     private boolean pha;
 
-    public void copyFromCorpoCelesteResponse(CorpoCelesteClient.CorpoCelesteResponse response) {
-        this.nomeCompleto = response.getNomeCompleto();
-        this.classificacaoOrbital = response.getClassificacaoOrbital();
-        this.periodoOrbital = response.getPeriodoOrbital();
-        this.tipo = response.getTipo();
-        this.neo = response.isNeo();
-        this.pha = response.ehPotencialmentePerigoso();
+    public void copyFromCorpoCelesteResponse(CorpoCeleste corpoCeleste) {
+        this.nomeCompleto = corpoCeleste.getNomeCompleto();
+        this.classificacaoOrbital = corpoCeleste.getClassificacaoOrbital();
+        this.periodoOrbital = corpoCeleste.getPeriodoOrbital();
+        this.tipo = corpoCeleste.getTipo();
+        this.neo = corpoCeleste.ehNEO();
+        this.pha = corpoCeleste.ehPHA();
     }
 
     @Override
