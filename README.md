@@ -17,6 +17,7 @@
 - **Logstash 8.15.0** - Pipeline de ingestão de dados
 - **Docker & Docker Compose** - Containerização
 - **OpenFeign** - Cliente HTTP para integração com APIs externas
+- **JWT (jjwt 0.12.5)** - Tokens de autenticação stateless
 - **Swagger** - Documentação da API
 - **Bean Validation** - Validação de dados
 
@@ -26,14 +27,22 @@
 
 ### Modelo de Domínio
 
-A aplicação segue um **modelo hierárquico** com a classe abstrata `Astro` como base:
-
 ```
 Astro (classe abstrata)
 ├── Planeta
+│   └── hasMany: Lua (relacionamento bidirecional)
 ├── Lua
+│   └── belongsTo: Planeta
 ├── Estrela
+│   ├── constelacao: ConstelacaoEnum
+│   └── luminosidade: LuminosidadeEnum
 └── Asteroide
+    └── integracao com NASA SBDB API
+
+Usuario (autenticação)
+├── username: String (único)
+├── senha: String (BCrypt hash)
+└── papel: String (ROLE_USER, ROLE_ADMIN)
 ```
 
 #### Entidades Principais
@@ -49,7 +58,9 @@ Astro (classe abstrata)
 - **Mapper Pattern**: Conversão entre DTOs e entidades usando classes dedicadas
 - **Service Layer**: Lógica de negócio centralizada
 - **Repository Pattern**: Acesso a dados via Spring Data JPA
-- **ApplicationRunner**: Carregamento inicial de dados via arquivos `.txt`, conforme utilizado na disciplina anterior
+- **ApplicationRunner**: Carregamento inicial de dados via arquivos `.txt` em ordem controlada
+- **Global Exception Handler**: Tratamento centralizado de exceções com respostas padronizadas
+- **JWT Filter**: Interceptação de requisições para validação de tokens
 ---
 
 ### Inicialização de Dados
@@ -220,6 +231,108 @@ docker logs -f stellarindex-logstash
 Tratamento centralizado de exceções em `GlobalExceptionHandler`
 
 ---
+## 🔐 Segurança e Autenticação JWT
+
+A aplicação implementa **autenticação stateless** usando **JSON Web Tokens (JWT)** com Spring Security.
+
+### Arquitetura de Segurança
+
+```
+┌──────────────┐
+│   Cliente   │
+└──────┬───────┘
+       │ POST /api/auth/login
+       │ {username, senha}
+       ▼
+┌──────────────────────────┐
+│ AutenticacaoController   │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│  AutenticacaoService     │
+│  - Valida credenciais    │
+│  - BCrypt hash           │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│    TokenService          │
+│  - Gera JWT (HS512)      │
+│  - Expira em 1 hora      │
+└──────┬───────────────────┘
+       │
+       ▼ token JWT
+┌──────────────┐
+│   Cliente   │ Authorization: Bearer {token}
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────────────┐
+│  FiltroAutenticacao      │
+│  - Intercepta requests   │
+│  - Valida token          │
+│  - Injeta autenticação   │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│  SecurityContext         │
+│  - Authentication        │
+│  - Authorities (roles)   │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│  @PreAuthorize           │
+│  - Verifica roles        │
+│  - Permite/Nega acesso   │
+└──────────────────────────┘
+```
+
+### Componentes de Segurança
+
+#### 1. **TokenService**
+- Gera tokens JWT assinados com algoritmo **HS512**
+- Extrai `username` e `papel` (role) do token
+- Valida assinatura e expiração
+- Configurável via `application.properties`:
+  - `stellar.jwt.chave-secreta`: Chave de assinatura (mínimo 256 bits)
+  - `stellar.jwt.tempo-expiracao`: Tempo de validade em ms (padrão: 1 hora)
+
+#### 2. **FiltroAutenticacao**
+- Intercepta todas as requisições HTTP
+- Lê header `Authorization: Bearer {token}`
+- Valida token e injeta `Authentication` no `SecurityContext`
+- Permite que controllers verifiquem autorização via `@PreAuthorize`
+
+#### 3. **SecurityConfig**
+- **CSRF desabilitado**: API stateless não precisa
+- **Session Policy**: `STATELESS` (sem cookies de sessão)
+- **Endpoints públicos**:
+  - `/api/auth/**` - Login e registro
+  - `/swagger-ui/**`, `/v3/api-docs/**` - Documentação
+  - `GET /api/**` - Leitura pública (opcional)
+- **Endpoints protegidos por HTTP Method**:
+  - `POST /api/**` → `ROLE_USER` ou `ROLE_ADMIN`
+  - `PUT /api/**` → `ROLE_USER` ou `ROLE_ADMIN`
+  - `PATCH /api/**` → `ROLE_USER` ou `ROLE_ADMIN`
+  - `DELETE /api/**` → `ROLE_ADMIN` (apenas administradores)
+
+
+### Roles e Permissões
+
+| Endpoint | Método | Role Necessária |
+|----------|--------|-----------------|
+| `/api/auth/**` | Todos | Público |
+| `/api/*/search` | GET | Público |
+| `/api/**` | GET | Público (opcional) |
+| `/api/**` | POST | `ROLE_USER` ou `ROLE_ADMIN` |
+| `/api/**` | PUT | `ROLE_USER` ou `ROLE_ADMIN` |
+| `/api/**` | PATCH | `ROLE_USER` ou `ROLE_ADMIN` |
+| `/api/**` | DELETE | `ROLE_ADMIN` |
+| `/swagger-ui/**` | GET | Público |
+___
 
 ## 🚀 Como Executar
 
@@ -303,6 +416,7 @@ Se retornar `count: 0`, aguarde até 5 minutos para o Logstash sincronizar os da
 ✅ **Carga inicial** de dados via arquivos texto  
 ✅ **Filtros especializados** (constelação, habitabilidade, NEOs) 
 ✅ **Healthchecks** configurados para todos os serviços Docker 
+✅ **Autentição** com JWT
 
 ___
 

@@ -16,5 +16,5 @@ public record LuaDTO(
         String descricao,
     boolean ehHabitavel,
     @NotNull(message = "A distância orbital é obrigatória") Long distanciaOrbitral,
-    Integer planetaId,
+    @NotNull(message = "O ID do planeta é obrigatório") Integer planetaId,
     String planetaNome) {}
