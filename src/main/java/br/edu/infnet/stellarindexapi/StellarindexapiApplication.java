@@ -8,8 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 public class StellarindexapiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(StellarindexapiApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(StellarindexapiApplication.class, args);
+  }
 }

@@ -18,6 +18,94 @@ services:
       timeout: 5s
       retries: 5
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: stellarindex-elasticsearch
+    environment:
+        - discovery.type=single-node
+        - xpack.security.enabled=false
+        - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+        - "9200:9200"
+        - "9300:9300"
+    networks:
+      - stellarindex-network
+    healthcheck:
+      test: [ "CMD", "curl", "-fs", "http://localhost:9200/_cluster/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.1
+    container_name: stellarindex-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - stellarindex-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    container_name: stellarindex-logstash
+    ports:
+      - "9600:9600"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/config/postgresql-42.7.3.jar:/usr/share/logstash/logstash-core/lib/jars/postgresql.jar
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - stellarindex-network
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+      - LOGSTASH_INTERNAL_PASSWORD=changeme
+    command: logstash -f /usr/share/logstash/pipeline/estrelas.conf --config.reload.automatic
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: stellarindex-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/stellarindexdb
+      - SPRING_DATASOURCE_USERNAME=stellarindex
+      - SPRING_DATASOURCE_PASSWORD=stellarindex123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_ELASTICSEARCH_REST_URIS=http://elasticsearch:9200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    networks:
+      - stellarindex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+      
 volumes:
   postgres_data:
 

@@ -12,6 +12,9 @@
 - **Spring Boot 3.3.4**
 - **Spring Data JPA** - Persistência de dados
 - **PostgreSQL 16** - Banco de dados relacional
+- **Elasticsearch 8.15.0** - Motor de busca e análise
+- **Kibana 8.14.1** - Visualização de dados
+- **Logstash 8.15.0** - Pipeline de ingestão de dados
 - **Docker & Docker Compose** - Containerização
 - **OpenFeign** - Cliente HTTP para integração com APIs externas
 - **Swagger** - Documentação da API
@@ -49,27 +52,6 @@ Astro (classe abstrata)
 - **ApplicationRunner**: Carregamento inicial de dados via arquivos `.txt`, conforme utilizado na disciplina anterior
 ---
 
-## 📁 Estrutura do Projeto
-
-```
-src/main/java/br/edu/infnet/stellarindexapi/
-├── config/                    # Configurações (Swagger, Feign, NASA API)
-├── controller/                # Controllers REST
-│   └── exception/            # Tratamento global de exceções
-├── model/
-│   ├── domain/               # Entidades JPA
-│   │   └── exceptions/       # Exceções personalizadas
-│   ├── dto/                  # Data Transfer Objects
-│   ├── enums/                # Enumerações (Constelação, Luminosidade)
-│   ├── repository/           # Interfaces JPA Repository
-│   ├── service/              # Camada de serviços
-│   └── clients/              # Clientes Feign para APIs externas
-├── *Loader.java              # Carregadores de dados iniciais
-└── StellarindexapiApplication.java
-```
-
----
-
 ### Inicialização de Dados
 
 A aplicação utiliza **ApplicationRunners** ordenados para carregar dados iniciais:
@@ -94,6 +76,130 @@ A aplicação integra-se com a **NASA JPL Small-Body Database (SBDB)** via OpenF
 - Lista de NEOs (Near-Earth Objects) conhecidos
 - Detecção de objetos potencialmente perigosos (PHA)
 - Informações sobre classificação orbital e características físicas
+
+---
+
+## 🔍 Elasticsearch, Kibana e Logstash (ELK Stack)
+
+A aplicação utiliza o **ELK Stack** para busca e análise avançada de dados:
+
+- **Elasticsearch**: Motor de busca e análise distribuído
+- **Kibana**: Interface de visualização e gerenciamento
+- **Logstash**: Pipeline de sincronização de dados do PostgreSQL para Elasticsearch
+
+### Arquitetura de Sincronização
+
+```
+┌─────────────┐     ┌──────────────┐     ┌────────────────┐
+│  PostgreSQL │────▶│   Logstash   │────▶│ Elasticsearch  │
+│  (RDBMS)    │     │  (Pipeline)  │     │   (Search)     │
+└─────────────┘     └──────────────┘     └────────────────┘
+                                                   │
+                                                   ▼
+                    ┌──────────────────────────────────┐
+                    │    API Spring Boot               │
+                    │  EstrelaSearchService            │
+                    │  /api/estrelas/search            │
+                    └──────────────────────────────────┘
+                                   │
+                                   ▼
+                            ┌─────────────┐
+                            │   Cliente   │
+                            │ (Frontend)  │
+                            └─────────────┘
+                                   
+                    ┌──────────────┐
+                    │    Kibana    │◀─── Análise e
+                    │ (Dashboard)  │     Visualização
+                    └──────────────┘
+```
+
+### Endpoint de Busca
+
+**EstrelaSearchController** - `/api/estrelas/search`
+
+```http
+GET /api/estrelas/search?texto=brilhante&page=0&size=10
+```
+
+**Funcionalidades**:
+- Busca full-text no campo `descricao`
+- Busca "**fuzziness**" (tolerância a erros de digitação)
+- **Boosting** de relevância (2.0x)
+- **Highlighting** dos termos encontrados
+- Paginação de resultados
+
+### Como Testar
+
+#### 1. Acessar o Kibana
+
+```
+http://localhost:5601
+```
+
+#### 2. Dev Tools (Console)
+
+Acesse `Management` → `Dev Tools` e execute:
+
+```json
+# Verificar se o índice existe
+GET /estrelas
+
+# Contar documentos
+GET /estrelas/_count
+
+# Buscar todas as estrelas
+GET /estrelas/_search
+{
+  "size": 10,
+  "query": {
+    "match_all": {}
+  }
+}
+
+# Busca por descrição (exemplo de query que a API faz)
+GET /estrelas/_search
+{
+  "from": 0,
+  "size": 10,
+  "query": {
+    "match": {
+      "descricao": {
+        "query": "brilhante",
+        "boost": 2.0,
+        "fuzziness": "AUTO"
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "descricao": {
+        "pre_tags": ["<em>"],
+        "post_tags": ["</em>"]
+      }
+    }
+  },
+  "sort": [
+    {
+      "_score": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+```
+
+#### 3. Testar a API via cURL
+
+```bash
+curl "http://localhost:8080/api/estrelas/search?texto=brilhante&page=0&size=10"
+```
+
+### Verificar Logs do Logstash
+
+```bash
+docker logs -f stellarindex-logstash
+```
 
 ---
 
@@ -130,22 +236,57 @@ git clone https://github.com/lanzgit/stellar-index.git
 cd stellarindexapi
 ```
 
-2. **Inicie o PostgreSQL**
+2. **Inicie os serviços com Docker Compose**
 ```bash
 cd docker
 docker-compose up -d
 ```
 
-3. **Execute a aplicação**
+Isso iniciará:
+- PostgreSQL (porta 5432)
+- Elasticsearch (porta 9200)
+- Kibana (porta 5601)
+- Logstash (porta 9600)
+
+3. **Aguarde os serviços ficarem prontos**
+```bash
+# Verificar status dos containers
+docker ps
+
+# Verificar logs
+docker logs stellarindex-postgres
+docker logs stellarindex-elasticsearch
+docker logs stellarindex-kibana
+docker logs stellarindex-logstash
+```
+
+**Tempo estimado de inicialização**:
+- PostgreSQL: ~10-20s
+- Elasticsearch: ~30-40s
+- Kibana: ~60s após Elasticsearch
+- Logstash: ~90s após Elasticsearch
+
+4. **Execute a aplicação**
 ```bash
 cd ..
 mvn spring-boot:run
 ```
 
-4. **Acesse a documentação Swagger**
+5. **Acesse os serviços**
+
+- **API Swagger**: http://localhost:8080/swagger-ui.html
+- **Kibana**: http://localhost:5601
+- **Elasticsearch**: http://localhost:9200
+
+6. **Verificar sincronização Elasticsearch**
+
+Acesse o Kibana Dev Tools e execute:
+```json
+GET /estrelas/_count
 ```
-http://localhost:8080/swagger-ui.html
-```
+
+Se retornar `count: 0`, aguarde até 5 minutos para o Logstash sincronizar os dados.
+
 ---
 
 ## 🎯 Principais Funcionalidades
@@ -154,8 +295,22 @@ http://localhost:8080/swagger-ui.html
 ✅ **Relacionamento bidirecional** entre Planetas e Luas  
 ✅ **Validação robusta** de dados com Bean Validation  
 ✅ **Integração com NASA API** para dados de asteroides  
+✅ **Busca full-text com Elasticsearch** - fuzziness, boosting e highlighting  
+✅ **ELK Stack completo** - Elasticsearch + Kibana + Logstash (somente no Objeto de `Estrela` para fins acadêmicos) 
 ✅ **Documentação automática** com Swagger/OpenAPI  
 ✅ **Containerização** com Docker Compose  
 ✅ **Tratamento global** de exceções  
 ✅ **Carga inicial** de dados via arquivos texto  
-✅ **Filtros especializados** (constelação, habitabilidade, NEOs)  
+✅ **Filtros especializados** (constelação, habitabilidade, NEOs) 
+✅ **Healthchecks** configurados para todos os serviços Docker 
+
+___
+
+## 🤝 Contribuições
+
+Este projeto foi desenvolvido como parte do curso de pós-graduação em Arquitetura Java no INFNET.
+
+**Autor**: Vinicius Vianna  
+**Disciplina**: Desenvolvimento Full Stack com React e Spring Boot 
+**Instituição**: INFNET  
+**Período**: 2025-2026

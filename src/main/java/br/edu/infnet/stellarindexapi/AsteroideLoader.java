@@ -2,15 +2,15 @@ package br.edu.infnet.stellarindexapi;
 
 import br.edu.infnet.stellarindexapi.model.domain.Asteroide;
 import br.edu.infnet.stellarindexapi.model.service.AsteroideService;
-import lombok.RequiredArgsConstructor;
-
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,43 +18,45 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AsteroideLoader implements ApplicationRunner {
 
-    private final AsteroideService asteroideService;
-    
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        System.out.println("Carregando asteroides do arquivo asteroide.txt");
-        
-        FileReader arquivo = new FileReader("asteroide.txt");
-        BufferedReader leitura = new BufferedReader(arquivo);
+  private final AsteroideService asteroideService;
 
-        String linha = leitura.readLine();
-        String[] campos = null;
+  @Override
+  public void run(ApplicationArguments args) throws Exception {
+    System.out.println("Carregando asteroides do arquivo asteroide.txt");
 
-        while (linha != null) {
-            campos = linha.split(";");
+    ClassPathResource resource = new ClassPathResource("data/asteroide.txt");
+    InputStream inputStream = resource.getInputStream();
+    BufferedReader leitura = new BufferedReader(new InputStreamReader(inputStream));
 
-            Asteroide asteroide = new Asteroide();
-            asteroide.setNome(campos[0]);
-            asteroide.setTemperaturaMedia(Double.valueOf(campos[1]));
-            asteroide.setDescricao(campos[2]);
-            asteroide.setEhHabitavel(Boolean.valueOf(campos[3]));
-            asteroide.setDesignacao(campos[4]);
-            asteroide.setNeo(Boolean.valueOf(campos[5]));
-            asteroide.setPha(Boolean.valueOf(campos[6]));
+    String linha = leitura.readLine();
+    String[] campos = null;
 
-            try {
-                this.asteroideService.criar(asteroide);
-            } catch (Exception e) {
-                System.err.println("Erro na criação do asteroide " + asteroide.getNome() + ": " + e.getMessage());
-            }
+    while (linha != null) {
+      campos = linha.split(";");
 
-            linha = leitura.readLine();
-        }
+      Asteroide asteroide = new Asteroide();
+      asteroide.setNome(campos[0]);
+      asteroide.setTemperaturaMedia(Double.valueOf(campos[1]));
+      asteroide.setDescricao(campos[2]);
+      asteroide.setEhHabitavel(Boolean.valueOf(campos[3]));
+      asteroide.setDesignacao(campos[4]);
+      asteroide.setNeo(Boolean.valueOf(campos[5]));
+      asteroide.setPha(Boolean.valueOf(campos[6]));
 
-        List<Asteroide> asteroides = this.asteroideService.obterTodos();
-        System.out.println("Asteroides carregados:");
-        asteroides.forEach(System.out::println);
+      try {
+        this.asteroideService.criar(asteroide);
+      } catch (Exception e) {
+        System.err.println(
+            "Erro na criação do asteroide " + asteroide.getNome() + ": " + e.getMessage());
+      }
 
-        leitura.close();
+      linha = leitura.readLine();
     }
+
+    List<Asteroide> asteroides = this.asteroideService.obterTodos();
+    System.out.println("Asteroides carregados:");
+    asteroides.forEach(System.out::println);
+
+    leitura.close();
+  }
 }

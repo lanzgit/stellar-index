@@ -8,11 +8,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    @Bean
-    public OpenAPI openAPI() {
-        return new OpenAPI().info(new Info()
+  @Bean
+  public OpenAPI openAPI() {
+    return new OpenAPI()
+        .info(
+            new Info()
                 .title("StellarIndex API")
-                .description("API que gerencia um Catálogo de Astros")
-        );
-    }
+                .description("API que gerencia um Catálogo de Astros"));
+  }
 }
