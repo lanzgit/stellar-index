@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "api.nasa")
 public class NasaApiConfig {
-    private String baseUrl;
-    private String apiKey;
+  private String baseUrl;
+  private String apiKey;
 }

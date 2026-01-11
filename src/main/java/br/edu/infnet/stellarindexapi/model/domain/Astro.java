@@ -14,26 +14,29 @@ import lombok.Setter;
 @MappedSuperclass
 public abstract class Astro {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    @Size(min = 2, max = 19)
-    private String nome;
+  @Size(min = 2, max = 19)
+  private String nome;
 
-    private double temperaturaMedia;
+  private double temperaturaMedia;
 
-    @NotBlank(message = "a descrição é obrigatória")
-    @Size(min = 3, max = 100, message = "descrição deve ter no mínimo 3 caracteres e no máximo 100 caracteres.")
-    private String descricao;
+  @NotBlank(message = "a descrição é obrigatória")
+  @Size(
+      min = 3,
+      max = 100,
+      message = "descrição deve ter no mínimo 3 caracteres e no máximo 100 caracteres.")
+  private String descricao;
 
-    private boolean ehHabitavel;
+  private boolean ehHabitavel;
 
-    @Override
-    public String toString() {
-        return String.format("%d - %s - %.2f - %s - %b",
-                id, nome, temperaturaMedia, descricao, ehHabitavel);
-    }
+  @Override
+  public String toString() {
+    return String.format(
+        "%d - %s - %.2f - %s - %b", id, nome, temperaturaMedia, descricao, ehHabitavel);
+  }
 
-    public abstract String obterTipo();
+  public abstract String obterTipo();
 }
