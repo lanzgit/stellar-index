@@ -10,24 +10,24 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
 @Tag(name = "Planetas", description = "Gerenciador de Planetas")
+@RequiredArgsConstructor
 public class PlanetaController {
 
   private final PlanetaService planetaService;
-
-  public PlanetaController(PlanetaService planetaService) {
-    this.planetaService = planetaService;
-  }
+  private final PlanetaMapper planetaMapper;
 
   @GetMapping("/planeta/{id}")
   public ResponseEntity<PlanetaDTO> obterPorId(@PathVariable Integer id) {
     Planeta planeta = this.planetaService.obterPorId(id);
-    return ResponseEntity.status(OK).body(PlanetaMapper.toDTO(planeta));
+    return ResponseEntity.status(OK).body(planetaMapper.toDTO(planeta));
   }
 
   @GetMapping("/planetas")
@@ -37,34 +37,38 @@ public class PlanetaController {
       return ResponseEntity.noContent().build();
     }
     List<PlanetaDTO> planetasDTO =
-        planetas.stream().map(PlanetaMapper::toDTO).collect(Collectors.toList());
+        planetas.stream().map(planetaMapper::toDTO).collect(Collectors.toList());
     return ResponseEntity.status(OK).body(planetasDTO);
   }
 
   @PostMapping("/planeta")
+  @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
   public ResponseEntity<PlanetaDTO> criarPlaneta(@Valid @RequestBody PlanetaDTO planetaDTO) {
-    Planeta planeta = PlanetaMapper.toEntity(planetaDTO);
+    Planeta planeta = planetaMapper.toEntity(planetaDTO);
     Planeta novoPlaneta = this.planetaService.criar(planeta);
-    return ResponseEntity.status(CREATED).body(PlanetaMapper.toDTO(novoPlaneta));
+    return ResponseEntity.status(CREATED).body(planetaMapper.toDTO(novoPlaneta));
   }
 
   @PutMapping("/planeta/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
   public ResponseEntity<PlanetaDTO> atualizarPlaneta(
       @PathVariable Integer id, @Valid @RequestBody PlanetaDTO planetaDTO) {
-    Planeta planeta = PlanetaMapper.toEntity(planetaDTO);
+    Planeta planeta = planetaMapper.toEntity(planetaDTO);
     Planeta planetaAtualizado = this.planetaService.atualizar(planeta, id);
-    return ResponseEntity.status(OK).body(PlanetaMapper.toDTO(planetaAtualizado));
+    return ResponseEntity.status(OK).body(planetaMapper.toDTO(planetaAtualizado));
   }
 
   @DeleteMapping("/planeta/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> excluirPlaneta(@PathVariable Integer id) {
     this.planetaService.excluir(id);
     return ResponseEntity.noContent().build();
   }
 
   @PatchMapping("/planeta/{id}/nuke")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<PlanetaDTO> destruir(@PathVariable Integer id) {
     Planeta planetaASerDestruido = this.planetaService.nuke(id);
-    return ResponseEntity.status(OK).body(PlanetaMapper.toDTO(planetaASerDestruido));
+    return ResponseEntity.status(OK).body(planetaMapper.toDTO(planetaASerDestruido));
   }
 }

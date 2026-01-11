@@ -1,10 +1,18 @@
 package br.edu.infnet.stellarindexapi.model.dto;
 
 import br.edu.infnet.stellarindexapi.model.domain.Lua;
+import br.edu.infnet.stellarindexapi.model.domain.Planeta;
+import br.edu.infnet.stellarindexapi.model.service.PlanetaService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class LuaMapper {
 
-  public static LuaDTO toDTO(Lua lua) {
+  private final PlanetaService planetaService;
+
+  public LuaDTO toDTO(Lua lua) {
     if (lua == null) {
       return null;
     }
@@ -19,7 +27,7 @@ public class LuaMapper {
         lua.getPlaneta() != null ? lua.getPlaneta().getNome() : null);
   }
 
-  public static Lua toEntity(LuaDTO dto) {
+  public Lua toEntity(LuaDTO dto) {
     if (dto == null) {
       return null;
     }
@@ -30,6 +38,12 @@ public class LuaMapper {
     lua.setDescricao(dto.descricao());
     lua.setEhHabitavel(dto.ehHabitavel());
     lua.setDistanciaOrbitral(dto.distanciaOrbitral());
+
+    if (dto.planetaId() != null) {
+      Planeta planeta = planetaService.obterPorId(dto.planetaId());
+      lua.setPlaneta(planeta);
+    }
+
     return lua;
   }
 }

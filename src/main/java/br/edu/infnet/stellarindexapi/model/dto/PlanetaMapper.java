@@ -4,29 +4,23 @@ import br.edu.infnet.stellarindexapi.model.domain.Planeta;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class PlanetaMapper {
 
-  public static PlanetaDTO toDTO(Planeta planeta) {
+  private final LuaMapper luaMapper;
+
+  public PlanetaDTO toDTO(Planeta planeta) {
     if (planeta == null) {
       return null;
     }
 
     List<LuaDTO> luasDTO =
         planeta.getLuas() != null
-            ? planeta.getLuas().stream()
-                .map(
-                    lua ->
-                        new LuaDTO(
-                            lua.getId(),
-                            lua.getNome(),
-                            lua.getTemperaturaMedia(),
-                            lua.getDescricao(),
-                            lua.isEhHabitavel(),
-                            lua.getDistanciaOrbitral(),
-                            planeta.getId(),
-                            planeta.getNome()))
-                .collect(Collectors.toList())
+            ? planeta.getLuas().stream().map(luaMapper::toDTO).collect(Collectors.toList())
             : Collections.emptyList();
 
     return new PlanetaDTO(
@@ -40,7 +34,7 @@ public class PlanetaMapper {
         luasDTO);
   }
 
-  public static Planeta toEntity(PlanetaDTO dto) {
+  public Planeta toEntity(PlanetaDTO dto) {
     if (dto == null) {
       return null;
     }
@@ -52,10 +46,11 @@ public class PlanetaMapper {
     planeta.setEhHabitavel(dto.ehHabitavel());
     planeta.setGravidade(dto.gravidade());
     planeta.setTemSateliteNatural(dto.temSateliteNatural());
+
     if (dto.luas() != null && !dto.luas().isEmpty()) {
       planeta.setLuas(
           dto.luas().stream()
-              .map(LuaMapper::toEntity)
+              .map(luaMapper::toEntity)
               .peek(lua -> lua.setPlaneta(planeta))
               .collect(Collectors.toList()));
     }

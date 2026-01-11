@@ -11,45 +11,45 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
 @Tag(name = "Luas", description = "Gerenciador de Luas")
+@RequiredArgsConstructor
 public class LuaController {
-  private final LuaService luaService;
 
-  public LuaController(LuaService luaService) {
-    this.luaService = luaService;
-  }
+  private final LuaService luaService;
+  private final LuaMapper luaMapper;
 
   @GetMapping("/luas")
   public ResponseEntity<List<LuaDTO>> obterLuas() {
     List<Lua> luas = this.luaService.obterTodos();
-    List<LuaDTO> luasDTO = luas.stream().map(LuaMapper::toDTO).collect(Collectors.toList());
+    List<LuaDTO> luasDTO = luas.stream().map(luaMapper::toDTO).collect(Collectors.toList());
     return ResponseEntity.status(OK).body(luasDTO);
   }
 
   @GetMapping("/lua/{id}")
   public ResponseEntity<LuaDTO> obterLuaPorId(@PathVariable Integer id) {
     Lua lua = this.luaService.obterPorId(id);
-    return ResponseEntity.status(OK).body(LuaMapper.toDTO(lua));
+    return ResponseEntity.status(OK).body(luaMapper.toDTO(lua));
   }
 
   @PostMapping("/lua")
   public ResponseEntity<LuaDTO> criarLua(@Valid @RequestBody LuaDTO luaDTO) {
-    Lua lua = LuaMapper.toEntity(luaDTO);
+    Lua lua = luaMapper.toEntity(luaDTO);
     Lua novaLua = this.luaService.criar(lua);
-    return ResponseEntity.status(CREATED).body(LuaMapper.toDTO(novaLua));
+    return ResponseEntity.status(CREATED).body(luaMapper.toDTO(novaLua));
   }
 
   @PutMapping("/lua/{id}")
   public ResponseEntity<LuaDTO> atualizarLua(
       @PathVariable Integer id, @Valid @RequestBody LuaDTO luaDTO) {
-    Lua lua = LuaMapper.toEntity(luaDTO);
+    Lua lua = luaMapper.toEntity(luaDTO);
     Lua luaAtualizada = this.luaService.atualizar(lua, id);
-    return ResponseEntity.status(OK).body(LuaMapper.toDTO(luaAtualizada));
+    return ResponseEntity.status(OK).body(luaMapper.toDTO(luaAtualizada));
   }
 
   @DeleteMapping("lua/{id}")
@@ -66,7 +66,7 @@ public class LuaController {
       return ResponseEntity.noContent().build();
     }
 
-    List<LuaDTO> luasDTO = luas.stream().map(LuaMapper::toDTO).collect(Collectors.toList());
+    List<LuaDTO> luasDTO = luas.stream().map(luaMapper::toDTO).collect(Collectors.toList());
     return ResponseEntity.status(OK).body(luasDTO);
   }
 
@@ -79,7 +79,7 @@ public class LuaController {
       return ResponseEntity.noContent().build();
     }
 
-    List<LuaDTO> luasDTO = luas.stream().map(LuaMapper::toDTO).collect(Collectors.toList());
+    List<LuaDTO> luasDTO = luas.stream().map(luaMapper::toDTO).collect(Collectors.toList());
     return ResponseEntity.status(OK).body(luasDTO);
   }
 }
