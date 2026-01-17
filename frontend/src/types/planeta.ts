@@ -1,3 +1,5 @@
+import { Lua } from "./lua";
+
 export interface Planeta {
   id: number;
   nome: string;
@@ -6,4 +8,5 @@ export interface Planeta {
   ehHabitavel: boolean;
   gravidade: number;
   temSateliteNatural: boolean;
+  luas?: Array<Lua>;
 }

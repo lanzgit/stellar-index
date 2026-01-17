@@ -10,12 +10,16 @@ export const ROUTES = {
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/registrar',
+    LOGIN: '/api/auth/login',
+    REGISTER: '/api/auth/registrar',
   },
-  ESTRELAS: '/estrelas',
-  PLANETAS: '/planetas',
-  LUAS: '/luas',
-  ASTEROIDES: '/asteroides',
-  NASA: '/nasa/corpos-celeste',
+  ESTRELAS: '/api/estrelas',
+  ESTRELA: '/api/estrela',
+  PLANETAS: '/api/planetas',
+  PLANETA: '/api/planeta',
+  LUAS: '/api/luas',
+  LUA: '/api/lua',
+  ASTEROIDES: '/api/asteroides',
+  ASTEROIDE: '/api/asteroide',
+  NASA: '/api/nasa/corpos-celeste',
 } as const;

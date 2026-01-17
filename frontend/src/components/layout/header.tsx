@@ -4,32 +4,42 @@ import { ROUTES } from '@/src/utils/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { authService } from '@/src/services/authService';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    const checkAuth = () => {
+      setIsAuthenticated(authService.isAuthenticated());
+      setUsername(authService.getUsername());
+    };
+
+    checkAuth();
+    const interval = setInterval(checkAuth, 1000);
+    
+    return () => clearInterval(interval);
   }, [pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    authService.logout();
     setIsAuthenticated(false);
+    setUsername(null);
     router.push(ROUTES.LOGIN);
   };
 
   return (
-    <header className="bg-gray-800 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-sky-900 via-sky-700 to-indigo-900 text-white shadow-lg">
       <nav className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          <Link href={ROUTES.HOME} className="text-2xl font-bold">
+          <Link href={ROUTES.HOME} className="text-2xl font-bold hover:text-yellow-300 transition-colors">
             StellarIndex
           </Link>
           
-          <div className="flex gap-6 items-center">
+          <div className="flex items-center gap-6">
             <Link 
               href={ROUTES.ESTRELAS}
               className={`hover:text-yellow-300 transition-colors ${
@@ -64,12 +74,17 @@ export default function Header() {
             </Link>
             
             {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition-colors"
-              >
-                Sair
-              </button>
+              <div className="flex items-center gap-4">
+                <span className="text-sm">
+                  Olá, <span className="font-semibold">{username}</span>
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition-colors"
+                >
+                  Sair
+                </button>
+              </div>
             ) : (
               <Link 
                 href={ROUTES.LOGIN}

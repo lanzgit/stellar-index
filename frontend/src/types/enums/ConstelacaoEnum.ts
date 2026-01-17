@@ -1,0 +1,31 @@
+export enum ConstelacaoEnum {
+  ARIES = 'ARIES',
+  TAURUS = "TAURUS",
+  GEMINI = "GEMINI",
+  CANCER = "CANCER",
+  LEO = "LEO",
+  VIRGO = "VIRGO",
+  LIBRA = "LIBRA",
+  SCORPIUS = "SCORPIUS",
+  SAGITTARIUS = "SAGITTARIUS",
+  CAPRICORNUS = "CAPRICORNUS",
+  AQUARIUS = "AQUARIUS",
+  PISCES = "PISCES",
+  CYGNUS = "CYGNUS",
+}
+
+export const ConstelacaoLabels: Record<ConstelacaoEnum, string> = {
+  [ConstelacaoEnum.ARIES]: 'Áries',
+  [ConstelacaoEnum.TAURUS]: 'Touro',
+  [ConstelacaoEnum.GEMINI]: 'Gêmeos',
+  [ConstelacaoEnum.CANCER]: 'Câncer',
+  [ConstelacaoEnum.LEO]: 'Leão',
+  [ConstelacaoEnum.VIRGO]: 'Virgem',
+  [ConstelacaoEnum.LIBRA]: 'Libra',
+  [ConstelacaoEnum.SCORPIUS]: 'Escorpião',
+  [ConstelacaoEnum.SAGITTARIUS]: 'Sagitário',
+  [ConstelacaoEnum.CAPRICORNUS]: 'Capricórnio',
+  [ConstelacaoEnum.AQUARIUS]: 'Aquário',
+  [ConstelacaoEnum.PISCES]: 'Peixes',
+  [ConstelacaoEnum.CYGNUS]: 'Cisne',
+};
