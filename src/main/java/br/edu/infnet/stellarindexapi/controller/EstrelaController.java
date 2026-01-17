@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 @Tag(name = "Estrelas", description = "Gerenciador de Estrelas")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class EstrelaController {
 
   private final EstrelaService estrelaService;
