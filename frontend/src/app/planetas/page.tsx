@@ -12,6 +12,7 @@ export default function PlanetasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [planetaEditando, setPlanetaEditando] = useState<Planeta | null>(null);
   const [luasVisiveis, setLuasVisiveis] = useState<Set<number>>(new Set());
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Omit<Planeta, 'id' | 'luas'>>({
     nome: '',
     temperaturaMedia: 0,
@@ -37,6 +38,25 @@ export default function PlanetasPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.nome || formData.nome.trim().length < 2) {
+      erros.nome = 'Nome deve ter no mínimo 2 caracteres';
+    } else if (formData.nome.trim().length > 15) {
+      erros.nome = 'Nome deve ter no máximo 15 caracteres';
+    }
+
+    if (!formData.descricao || formData.descricao.trim().length < 3) {
+      erros.descricao = 'Descrição deve ter no mínimo 3 caracteres';
+    } else if (formData.descricao.trim().length > 100) {
+      erros.descricao = 'Descrição deve ter no máximo 100 caracteres';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
   };
 
   const toggleLuas = (planetaId: number) => {
@@ -97,6 +117,7 @@ export default function PlanetasPage() {
       gravidade: planeta.gravidade,
       temSateliteNatural: planeta.temSateliteNatural,
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
@@ -110,12 +131,14 @@ export default function PlanetasPage() {
       gravidade: 0,
       temSateliteNatural: false,
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setPlanetaEditando(null);
+    setErrosValidacao({});
     setFormData({
       nome: '',
       temperaturaMedia: 0,
@@ -129,6 +152,10 @@ export default function PlanetasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validarFormulario()) {
+      return;
+    }
+
     try {
       if (planetaEditando) {
         await planetaService.atualizar(planetaEditando.id, formData);
@@ -139,9 +166,8 @@ export default function PlanetasPage() {
       handleCloseModal();
       carregarPlanetas();
     } catch (err) {
-      alert(
-        `Erro ao ${planetaEditando ? 'atualizar' : 'criar'} planeta. Tente novamente.`
-      );
+      const errorMessage = err instanceof Error ? err.message : `Erro ao ${planetaEditando ? 'atualizar' : 'criar'} planeta`;
+      alert(errorMessage);
       console.error('Erro ao salvar planeta:', err);
     }
   };
@@ -150,6 +176,14 @@ export default function PlanetasPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -329,77 +363,100 @@ export default function PlanetasPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={planetaEditando ? 'Editar Planeta' : 'Novo Planeta'}
+        title={planetaEditando ? `Editar Planeta: ${planetaEditando.nome}` : 'Novo Planeta'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="nome" className="block text-sm font-semibold text-gray-700 mb-2">
               Nome *
             </label>
             <input
               type="text"
+              id="nome"
               name="nome"
               value={formData.nome}
               onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errosValidacao.nome ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Ex: Terra"
             />
+            {errosValidacao.nome && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.nome}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.nome.length}/15 caracteres
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="temperaturaMedia" className="block text-sm font-semibold text-gray-700 mb-2">
               Temperatura Média (°C) *
             </label>
             <input
               type="number"
+              id="temperaturaMedia"
               name="temperaturaMedia"
               value={formData.temperaturaMedia}
               onChange={handleInputChange}
               required
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ex: 15.0"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="gravidade" className="block text-sm font-semibold text-gray-700 mb-2">
               Gravidade (m/s²) *
             </label>
             <input
               type="number"
+              id="gravidade"
               name="gravidade"
               value={formData.gravidade}
               onChange={handleInputChange}
               required
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ex: 9.81"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição
+            <label htmlFor="descricao" className="block text-sm font-semibold text-gray-700 mb-2">
+              Descrição *
             </label>
             <textarea
+              id="descricao"
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={4}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                errosValidacao.descricao ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Descreva o planeta..."
             />
+            {errosValidacao.descricao && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.descricao}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.descricao.length}/100 caracteres
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="ehHabitavel"
                 id="ehHabitavel"
+                name="ehHabitavel"
                 checked={formData.ehHabitavel}
                 onChange={handleCheckboxChange}
-                className="mr-2 w-4 h-4"
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label htmlFor="ehHabitavel" className="text-sm font-medium text-gray-700">
+              <label htmlFor="ehHabitavel" className="ml-2 text-sm font-semibold text-gray-700">
                 Habitável
               </label>
             </div>
@@ -407,34 +464,31 @@ export default function PlanetasPage() {
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="temSateliteNatural"
                 id="temSateliteNatural"
+                name="temSateliteNatural"
                 checked={formData.temSateliteNatural}
                 onChange={handleCheckboxChange}
-                className="mr-2 w-4 h-4"
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label
-                htmlFor="temSateliteNatural"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="temSateliteNatural" className="ml-2 text-sm font-semibold text-gray-700">
                 Tem Satélite Natural
               </label>
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4">
+          <div className="flex gap-3 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
-              {planetaEditando ? 'Atualizar' : 'Criar'}
+              {planetaEditando ? 'Salvar Alterações' : 'Criar Planeta'}
             </button>
           </div>
         </form>

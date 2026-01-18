@@ -15,9 +15,36 @@ export default function LoginPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
+
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.username || formData.username.trim().length < 3) {
+      erros.username = 'Usuário deve ter no mínimo 3 caracteres';
+    } else if (formData.username.trim().length > 50) {
+      erros.username = 'Usuário deve ter no máximo 50 caracteres';
+    }
+
+    if (!formData.senha || formData.senha.length < 6) {
+      erros.senha = 'Senha deve ter no mínimo 6 caracteres';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -26,6 +53,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validarFormulario()) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -61,7 +93,7 @@ export default function LoginPage() {
               htmlFor="username"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Usuário
+              Usuário *
             </label>
             <input
               type="text"
@@ -69,10 +101,14 @@ export default function LoginPage() {
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                errosValidacao.username ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Digite seu usuário"
             />
+            {errosValidacao.username && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.username}</p>
+            )}
           </div>
 
           <div>
@@ -80,7 +116,7 @@ export default function LoginPage() {
               htmlFor="senha"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Senha
+              Senha *
             </label>
             <input
               type="password"
@@ -88,10 +124,14 @@ export default function LoginPage() {
               name="senha"
               value={formData.senha}
               onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                errosValidacao.senha ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Digite sua senha"
             />
+            {errosValidacao.senha && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.senha}</p>
+            )}
           </div>
 
           <button

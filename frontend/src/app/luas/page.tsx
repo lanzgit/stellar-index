@@ -16,7 +16,7 @@ interface FormData {
   planetaId: number;
   planetaNome: string;
 }
-  
+
 export default function LuasPage() {
   const [luas, setLuas] = useState<Lua[]>([]);
   const [planetas, setPlanetas] = useState<Planeta[]>([]);
@@ -24,6 +24,7 @@ export default function LuasPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [luaEditando, setLuaEditando] = useState<Lua | null>(null);
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<FormData>({
     nome: '',
     temperaturaMedia: 0,
@@ -49,11 +50,39 @@ export default function LuasPage() {
       setLuas(luasData);
       setPlanetas(planetasData);
     } catch (err) {
-      setError('Erro ao carregar dados. Tente novamente.');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados';
+      setError(errorMessage);
       console.error('Erro ao carregar dados:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.nome || formData.nome.trim().length < 2) {
+      erros.nome = 'Nome deve ter no mínimo 2 caracteres';
+    } else if (formData.nome.trim().length > 15) {
+      erros.nome = 'Nome deve ter no máximo 15 caracteres';
+    }
+
+    if (!formData.descricao || formData.descricao.trim().length < 3) {
+      erros.descricao = 'Descrição deve ter no mínimo 3 caracteres';
+    } else if (formData.descricao.trim().length > 100) {
+      erros.descricao = 'Descrição deve ter no máximo 100 caracteres';
+    }
+
+    if (!formData.distanciaOrbitral || formData.distanciaOrbitral <= 0) {
+      erros.distanciaOrbitral = 'Distância orbital deve ser maior que zero';
+    }
+
+    if (!formData.planetaId || formData.planetaId === 0) {
+      erros.planetaId = 'Selecione um planeta';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
   };
 
   const obterNomePlaneta = (planetaId: number | null): string => {
@@ -73,9 +102,10 @@ export default function LuasPage() {
 
     try {
       await luaService.excluir(id);
-      carregarDados();
+      await carregarDados();
     } catch (err) {
-      alert('Erro ao excluir lua. Tente novamente.');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir lua';
+      alert(errorMessage);
       console.error('Erro ao excluir lua:', err);
     }
   };
@@ -91,6 +121,7 @@ export default function LuasPage() {
       planetaId: lua.planetaId || 0,
       planetaNome: lua.planetaNome || '',
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
@@ -105,12 +136,14 @@ export default function LuasPage() {
       planetaId: planetas.length > 0 ? planetas[0].id : 0,
       planetaNome: planetas.length > 0 ? planetas[0].nome : '',
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setLuaEditando(null);
+    setErrosValidacao({});
     setFormData({
       nome: '',
       temperaturaMedia: 0,
@@ -125,42 +158,32 @@ export default function LuasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.planetaId || formData.planetaId === 0) {
-      alert('Por favor, selecione um planeta.');
+    if (!validarFormulario()) {
       return;
     }
 
     try {
+      const luaDTO: LuaDTO = {
+        nome: formData.nome.trim(),
+        temperaturaMedia: formData.temperaturaMedia,
+        descricao: formData.descricao.trim(),
+        ehHabitavel: formData.ehHabitavel,
+        distanciaOrbitral: formData.distanciaOrbitral,
+        planetaId: formData.planetaId,
+        planetaNome: formData.planetaNome,
+      };
+
       if (luaEditando) {
-        const updateData: LuaDTO = {
-          nome: formData.nome,
-          temperaturaMedia: formData.temperaturaMedia,
-          descricao: formData.descricao,
-          ehHabitavel: formData.ehHabitavel,
-          distanciaOrbitral: formData.distanciaOrbitral,
-          planetaId: formData.planetaId,
-          planetaNome: formData.planetaNome,
-        };
-        await luaService.atualizar(luaEditando.id, updateData);
+        await luaService.atualizar(luaEditando.id, luaDTO);
       } else {
-        const createData: LuaDTO = {
-          nome: formData.nome,
-          temperaturaMedia: formData.temperaturaMedia,
-          descricao: formData.descricao,
-          ehHabitavel: formData.ehHabitavel,
-          distanciaOrbitral: formData.distanciaOrbitral,
-          planetaId: formData.planetaId,
-          planetaNome: formData.planetaNome,
-        };
-        await luaService.criar(createData);
+        await luaService.criar(luaDTO);
       }
 
       handleCloseModal();
-      carregarDados();
+      await carregarDados();
     } catch (err) {
-      alert(
-        `Erro ao ${luaEditando ? 'atualizar' : 'criar'} lua. Tente novamente.`
-      );
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar lua';
+      alert(errorMessage);
       console.error('Erro ao salvar lua:', err);
     }
   };
@@ -169,6 +192,14 @@ export default function LuasPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -223,7 +254,7 @@ export default function LuasPage() {
           </div>
         )}
 
-            {luas.length === 0 ? (
+        {luas.length === 0 ? (
           <div className="text-gray-700 text-center text-xl">
             Nenhuma lua encontrada.
           </div>
@@ -238,6 +269,7 @@ export default function LuasPage() {
                   <h2 className="text-2xl font-bold text-gray-700 mb-2">
                     {lua.nome}
                   </h2>
+
                   {lua.planetaId && (
                     <div className="flex items-center gap-2 text-sm text-gray-600 bg-indigo-50 px-3 py-2 rounded-lg">
                       <span className="material-symbols-outlined text-indigo-600 text-base">
@@ -273,11 +305,9 @@ export default function LuasPage() {
                     </span>
                   </p>
 
-                  {lua.descricao && (
-                    <p className="mt-4 text-sm text-gray-600 italic">
-                      {lua.descricao}
-                    </p>
-                  )}
+                  <p className="mt-4 text-sm text-gray-600 italic">
+                    {lua.descricao}
+                  </p>
                 </div>
 
                 <div className="flex gap-2 mt-6 justify-end">
@@ -317,9 +347,16 @@ export default function LuasPage() {
               name="nome"
               value={formData.nome}
               onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errosValidacao.nome ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errosValidacao.nome && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.nome}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.nome.length}/15 caracteres
+            </p>
           </div>
 
           <div>
@@ -330,9 +367,10 @@ export default function LuasPage() {
               name="planetaId"
               value={formData.planetaId}
               onChange={handleInputChange}
-              required
-              disabled={luaEditando !== null}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!!luaEditando}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errosValidacao.planetaId ? 'border-red-500' : 'border-gray-300'
+              } ${luaEditando ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
               <option value={0}>Selecione um planeta</option>
               {planetas.map((planeta) => (
@@ -341,6 +379,9 @@ export default function LuasPage() {
                 </option>
               ))}
             </select>
+            {errosValidacao.planetaId && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.planetaId}</p>
+            )}
             {luaEditando && (
               <p className="text-xs text-gray-500 mt-1">
                 O planeta não pode ser alterado após a criação da lua.
@@ -357,7 +398,6 @@ export default function LuasPage() {
               name="temperaturaMedia"
               value={formData.temperaturaMedia}
               onChange={handleInputChange}
-              required
               step="0.01"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
@@ -372,24 +412,36 @@ export default function LuasPage() {
               name="distanciaOrbitral"
               value={formData.distanciaOrbitral}
               onChange={handleInputChange}
-              required
               step="0.01"
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errosValidacao.distanciaOrbitral ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errosValidacao.distanciaOrbitral && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.distanciaOrbitral}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição
+              Descrição *
             </label>
             <textarea
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none ${
+                errosValidacao.descricao ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errosValidacao.descricao && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.descricao}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.descricao.length}/100 caracteres
+            </p>
           </div>
 
           <div className="flex items-center">
