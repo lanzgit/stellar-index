@@ -18,33 +18,75 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
+
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.username || formData.username.trim().length < 3) {
+      erros.username = 'Usuário deve ter no mínimo 3 caracteres';
+    } else if (formData.username.trim().length > 50) {
+      erros.username = 'Usuário deve ter no máximo 50 caracteres';
+    }
+
+    if (!formData.senha || formData.senha.length < 6) {
+      erros.senha = 'Senha deve ter no mínimo 6 caracteres';
+    } else if (formData.senha.length > 100) {
+      erros.senha = 'Senha deve ter no máximo 100 caracteres';
+    }
+
+    if (!confirmSenha) {
+      erros.confirmSenha = 'Confirmação de senha é obrigatória';
+    } else if (formData.senha !== confirmSenha) {
+      erros.confirmSenha = 'As senhas não coincidem';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  const handleConfirmSenhaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+
+    if (errosValidacao.confirmSenha) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros.confirmSenha;
+        return novosErros;
+      });
+    }
+
+    setConfirmSenha(value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validarFormulario()) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
-
-    if (formData.senha !== confirmSenha) {
-      setError('As senhas não coincidem');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.senha.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres');
-      setLoading(false);
-      return;
-    }
 
     try {
       await authService.registrar(formData);
@@ -87,7 +129,7 @@ export default function RegisterPage() {
               htmlFor="username"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Usuário
+              Usuário *
             </label>
             <input
               type="text"
@@ -95,10 +137,17 @@ export default function RegisterPage() {
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                errosValidacao.username ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Escolha um nome de usuário"
             />
+            {errosValidacao.username && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.username}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.username.length}/50 caracteres
+            </p>
           </div>
 
           <div>
@@ -106,7 +155,7 @@ export default function RegisterPage() {
               htmlFor="senha"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Senha
+              Senha *
             </label>
             <input
               type="password"
@@ -114,10 +163,14 @@ export default function RegisterPage() {
               name="senha"
               value={formData.senha}
               onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                errosValidacao.senha ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Mínimo 6 caracteres"
             />
+            {errosValidacao.senha && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.senha}</p>
+            )}
           </div>
 
           <div>
@@ -125,18 +178,22 @@ export default function RegisterPage() {
               htmlFor="confirmSenha"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Confirmar Senha
+              Confirmar Senha *
             </label>
             <input
               type="password"
               id="confirmSenha"
               name="confirmSenha"
               value={confirmSenha}
-              onChange={(e) => setConfirmSenha(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              onChange={handleConfirmSenhaChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                errosValidacao.confirmSenha ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Digite a senha novamente"
             />
+            {errosValidacao.confirmSenha && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.confirmSenha}</p>
+            )}
           </div>
 
           <div>
@@ -144,7 +201,7 @@ export default function RegisterPage() {
               htmlFor="papel"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Tipo de Conta
+              Tipo de Conta *
             </label>
             <select
               id="papel"

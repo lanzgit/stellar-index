@@ -11,6 +11,7 @@ export default function AsteroidesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [asteroideEditando, setAsteroideEditando] = useState<Asteroide | null>(null);
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Omit<Asteroide, 'id'>>({
     nome: '',
     temperaturaMedia: 0,
@@ -43,6 +44,49 @@ export default function AsteroidesPage() {
     }
   };
 
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.nome || formData.nome.trim().length < 2) {
+      erros.nome = 'Nome deve ter no mínimo 2 caracteres';
+    } else if (formData.nome.trim().length > 15) {
+      erros.nome = 'Nome deve ter no máximo 15 caracteres';
+    }
+
+    if (!formData.descricao || formData.descricao.trim().length < 3) {
+      erros.descricao = 'Descrição deve ter no mínimo 3 caracteres';
+    } else if (formData.descricao.trim().length > 100) {
+      erros.descricao = 'Descrição deve ter no máximo 100 caracteres';
+    }
+
+    if (!formData.designacao || formData.designacao.trim().length < 1) {
+      erros.designacao = 'Designação deve ter no mínimo 1 caractere';
+    } else if (formData.designacao.trim().length > 20) {
+      erros.designacao = 'Designação deve ter no máximo 20 caracteres';
+    }
+
+    if (!formData.nomeCompleto || formData.nomeCompleto.trim().length < 3) {
+      erros.nomeCompleto = 'Nome completo deve ter no mínimo 3 caracteres';
+    } else if (formData.nomeCompleto.trim().length > 100) {
+      erros.nomeCompleto = 'Nome completo deve ter no máximo 100 caracteres';
+    }
+
+    if (!formData.classificacaoOrbital || formData.classificacaoOrbital.trim().length < 1) {
+      erros.classificacaoOrbital = 'Classificação orbital deve ter no mínimo 1 caractere';
+    } else if (formData.classificacaoOrbital.trim().length > 50) {
+      erros.classificacaoOrbital = 'Classificação orbital deve ter no máximo 50 caracteres';
+    }
+
+    if (!formData.tipo || formData.tipo.trim().length < 1) {
+      erros.tipo = 'Tipo deve ter no mínimo 1 caractere';
+    } else if (formData.tipo.trim().length > 30) {
+      erros.tipo = 'Tipo deve ter no máximo 30 caracteres';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
+  };
+
   const handleExcluir = async (id: number, nome: string) => {
     const confirmacao = window.confirm(
       `Tem certeza que deseja excluir o asteroide "${nome}"?`
@@ -69,13 +113,14 @@ export default function AsteroidesPage() {
       descricao: asteroide.descricao,
       ehHabitavel: asteroide.ehHabitavel,
       designacao: asteroide.designacao,
-      nomeCompleto: asteroide.nomeCompleto || '',
-      classificacaoOrbital: asteroide.classificacaoOrbital || '',
-      periodoOrbital: asteroide.periodoOrbital || 0,
-      tipo: asteroide.tipo || '',
+      nomeCompleto: asteroide.nomeCompleto,
+      classificacaoOrbital: asteroide.classificacaoOrbital,
+      periodoOrbital: asteroide.periodoOrbital,
+      tipo: asteroide.tipo,
       neo: asteroide.neo,
       pha: asteroide.pha,
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
@@ -94,12 +139,14 @@ export default function AsteroidesPage() {
       neo: false,
       pha: false,
     });
+    setErrosValidacao({});
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setAsteroideEditando(null);
+    setErrosValidacao({});
     setFormData({
       nome: '',
       temperaturaMedia: 0,
@@ -118,19 +165,22 @@ export default function AsteroidesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validarFormulario()) {
+      return;
+    }
+
     try {
       if (asteroideEditando) {
         await asteroideService.atualizar(asteroideEditando.id, formData);
       } else {
         await asteroideService.criar(formData);
       }
-      
+
       handleCloseModal();
       carregarAsteroides();
     } catch (err) {
-      alert(
-        `Erro ao ${asteroideEditando ? 'atualizar' : 'criar'} asteroide. Tente novamente.`
-      );
+      const errorMessage = err instanceof Error ? err.message : `Erro ao ${asteroideEditando ? 'atualizar' : 'criar'} asteroide`;
+      alert(errorMessage);
       console.error('Erro ao salvar asteroide:', err);
     }
   };
@@ -139,7 +189,15 @@ export default function AsteroidesPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
-    
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? Number.parseFloat(value) : value,
@@ -303,129 +361,197 @@ export default function AsteroidesPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={asteroideEditando ? 'Editar Asteroide' : 'Novo Asteroide'}
+        title={asteroideEditando ? `Editar Asteroide: ${asteroideEditando.nome}` : 'Novo Asteroide'}
+        maxWidth="2xl"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="nome" className="block text-sm font-semibold text-gray-700 mb-2">
               Nome *
             </label>
             <input
               type="text"
+              id="nome"
               name="nome"
               value={formData.nome}
               onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                errosValidacao.nome ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Ex: Eros"
             />
+            {errosValidacao.nome && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.nome}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.nome.length}/15 caracteres
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="designacao" className="block text-sm font-semibold text-gray-700 mb-2">
               Designação *
             </label>
             <input
               type="text"
+              id="designacao"
               name="designacao"
               value={formData.designacao}
               onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                errosValidacao.designacao ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Ex: 433"
             />
+            {errosValidacao.designacao && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.designacao}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.designacao.length}/20 caracteres
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Temperatura Média (K) *
-            </label>
-            <input
-              type="number"
-              name="temperaturaMedia"
-              value={formData.temperaturaMedia}
-              onChange={handleInputChange}
-              required
-              step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nome Completo
+            <label htmlFor="nomeCompleto" className="block text-sm font-semibold text-gray-700 mb-2">
+              Nome Completo *
             </label>
             <input
               type="text"
+              id="nomeCompleto"
               name="nomeCompleto"
               value={formData.nomeCompleto}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                errosValidacao.nomeCompleto ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Ex: 433 Eros (A898 PA)"
             />
+            {errosValidacao.nomeCompleto && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.nomeCompleto}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.nomeCompleto?.length}/100 caracteres
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="classificacaoOrbital" className="block text-sm font-semibold text-gray-700 mb-2">
+                Classificação Orbital *
+              </label>
+              <input
+                type="text"
+                id="classificacaoOrbital"
+                name="classificacaoOrbital"
+                value={formData.classificacaoOrbital}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  errosValidacao.classificacaoOrbital ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Ex: AMO"
+              />
+              {errosValidacao.classificacaoOrbital && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.classificacaoOrbital}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.classificacaoOrbital?.length}/50 caracteres
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="tipo" className="block text-sm font-semibold text-gray-700 mb-2">
+                Tipo *
+              </label>
+              <input
+                type="text"
+                id="tipo"
+                name="tipo"
+                value={formData.tipo}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  errosValidacao.tipo ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Ex: S"
+              />
+              {errosValidacao.tipo && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.tipo}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.tipo?.length}/30 caracteres
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="temperaturaMedia" className="block text-sm font-semibold text-gray-700 mb-2">
+                Temperatura Média (°C) *
+              </label>
+              <input
+                type="number"
+                id="temperaturaMedia"
+                name="temperaturaMedia"
+                value={formData.temperaturaMedia}
+                onChange={handleInputChange}
+                required
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Ex: -73"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="periodoOrbital" className="block text-sm font-semibold text-gray-700 mb-2">
+                Período Orbital (dias) *
+              </label>
+              <input
+                type="number"
+                id="periodoOrbital"
+                name="periodoOrbital"
+                value={formData.periodoOrbital}
+                onChange={handleInputChange}
+                required
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Ex: 642.9"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo
-            </label>
-            <input
-              type="text"
-              name="tipo"
-              value={formData.tipo}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Classificação Orbital
-            </label>
-            <input
-              type="text"
-              name="classificacaoOrbital"
-              value={formData.classificacaoOrbital}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Período Orbital (dias)
-            </label>
-            <input
-              type="number"
-              name="periodoOrbital"
-              value={formData.periodoOrbital}
-              onChange={handleInputChange}
-              step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição
+            <label htmlFor="descricao" className="block text-sm font-semibold text-gray-700 mb-2">
+              Descrição *
             </label>
             <textarea
+              id="descricao"
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
+                errosValidacao.descricao ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Descreva o asteroide..."
             />
+            {errosValidacao.descricao && (
+              <p className="mt-1 text-sm text-red-600">{errosValidacao.descricao}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.descricao?.length}/100 caracteres
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="ehHabitavel"
                 id="ehHabitavel"
+                name="ehHabitavel"
                 checked={formData.ehHabitavel}
                 onChange={handleCheckboxChange}
-                className="mr-2 w-4 h-4"
+                className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
-              <label htmlFor="ehHabitavel" className="text-sm font-medium text-gray-700">
+              <label htmlFor="ehHabitavel" className="ml-2 text-sm font-semibold text-gray-700">
                 Habitável
               </label>
             </div>
@@ -433,45 +559,45 @@ export default function AsteroidesPage() {
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="neo"
                 id="neo"
+                name="neo"
                 checked={formData.neo}
                 onChange={handleCheckboxChange}
-                className="mr-2 w-4 h-4"
+                className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
-              <label htmlFor="neo" className="text-sm font-medium text-gray-700">
-                NEO (Near-Earth Object)
+              <label htmlFor="neo" className="ml-2 text-sm font-semibold text-gray-700">
+                NEO
               </label>
             </div>
 
             <div className="flex items-center">
               <input
                 type="checkbox"
-                name="pha"
                 id="pha"
+                name="pha"
                 checked={formData.pha}
                 onChange={handleCheckboxChange}
-                className="mr-2 w-4 h-4"
+                className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
-              <label htmlFor="pha" className="text-sm font-medium text-gray-700">
-                PHA (Potentially Hazardous)
+              <label htmlFor="pha" className="ml-2 text-sm font-semibold text-gray-700">
+                PHA
               </label>
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4">
+          <div className="flex gap-3 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
             >
-              {asteroideEditando ? 'Atualizar' : 'Criar'}
+              {asteroideEditando ? 'Salvar Alterações' : 'Criar Asteroide'}
             </button>
           </div>
         </form>

@@ -19,6 +19,7 @@ export default function EstrelasPage() {
   const [activeSearchTerm, setActiveSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [estrelaEditando, setEstrelaEditando] = useState<Estrela | null>(null);
+  const [errosValidacao, setErrosValidacao] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Omit<Estrela, 'id'>>({
     nome: '',
     temperaturaMedia: 0,
@@ -162,6 +163,7 @@ export default function EstrelasPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEstrelaEditando(null);
+    setErrosValidacao({});
     setFormData({
       nome: '',
       temperaturaMedia: 0,
@@ -172,8 +174,39 @@ export default function EstrelasPage() {
     });
   };
 
+  const validarFormulario = (): boolean => {
+    const erros: Record<string, string> = {};
+
+    if (!formData.nome || formData.nome.trim().length < 2) {
+      erros.nome = 'Nome deve ter no mínimo 2 caracteres';
+    } else if (formData.nome.trim().length > 19) {
+      erros.nome = 'Nome deve ter no máximo 19 caracteres';
+    }
+
+    if (!formData.descricao || formData.descricao.trim().length < 3) {
+      erros.descricao = 'Descrição deve ter no mínimo 3 caracteres';
+    } else if (formData.descricao.trim().length > 100) {
+      erros.descricao = 'Descrição deve ter no máximo 100 caracteres';
+    }
+
+    if (!formData.constelacao) {
+      erros.constelacao = 'Selecione uma constelação';
+    }
+
+    if (!formData.luminosidade) {
+      erros.luminosidade = 'Selecione uma luminosidade';
+    }
+
+    setErrosValidacao(erros);
+    return Object.keys(erros).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validarFormulario()) {
+      return;
+    }
 
     try {
       if (estrelaEditando) {
@@ -190,9 +223,8 @@ export default function EstrelasPage() {
         carregarEstrelas();
       }
     } catch (err) {
-      alert(
-        `Erro ao ${estrelaEditando ? 'atualizar' : 'criar'} estrela. Tente novamente.`
-      );
+      const errorMessage = err instanceof Error ? err.message : `Erro ao ${estrelaEditando ? 'atualizar' : 'criar'} estrela`;
+      alert(errorMessage);
       console.error('Erro ao salvar estrela:', err);
     }
   };
@@ -201,6 +233,14 @@ export default function EstrelasPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
+
+    if (errosValidacao[name]) {
+      setErrosValidacao((prev) => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
     
     setFormData((prev) => ({
       ...prev,
@@ -405,10 +445,17 @@ export default function EstrelasPage() {
                 name="nome"
                 value={formData.nome}
                 onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                  errosValidacao.nome ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Ex: Sirius"
               />
+              {errosValidacao.nome && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.nome}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.nome.length}/19 caracteres
+              </p>
             </div>
 
             <div>
@@ -437,8 +484,9 @@ export default function EstrelasPage() {
                 name="constelacao"
                 value={formData.constelacao}
                 onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                  errosValidacao.constelacao ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 {Object.values(ConstelacaoEnum).map((constelacao) => (
                   <option key={constelacao} value={constelacao}>
@@ -446,6 +494,9 @@ export default function EstrelasPage() {
                   </option>
                 ))}
               </select>
+              {errosValidacao.constelacao && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.constelacao}</p>
+              )}
             </div>
 
             <div>
@@ -457,8 +508,9 @@ export default function EstrelasPage() {
                 name="luminosidade"
                 value={formData.luminosidade}
                 onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent ${
+                  errosValidacao.luminosidade ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 {Object.values(LuminosidadeEnum).map((luminosidade) => (
                   <option key={luminosidade} value={luminosidade}>
@@ -466,6 +518,9 @@ export default function EstrelasPage() {
                   </option>
                 ))}
               </select>
+              {errosValidacao.luminosidade && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.luminosidade}</p>
+              )}
             </div>
 
             <div>
@@ -477,11 +532,18 @@ export default function EstrelasPage() {
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleInputChange}
-                required
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none ${
+                  errosValidacao.descricao ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Descreva a estrela..."
               />
+              {errosValidacao.descricao && (
+                <p className="mt-1 text-sm text-red-600">{errosValidacao.descricao}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.descricao.length}/100 caracteres
+              </p>
             </div>
 
             <div className="flex items-center">
